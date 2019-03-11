@@ -14,7 +14,23 @@
     "hermes",
     "adoratorio"
   ],
-  "author": "Tommaso Algozzino <tommaso@adoratorio.com>, Andrea Gottardi <andrea@adoratorio.com>, Daniele Borra <daniele@adoratorio.com<",
+  "author": {
+    "name": "Adoratorio",
+    "email": "contact@adoratorio.com",
+    "url": "https://adoratorio.studio"
+  },
+  "contributors": [
+    {
+      "name": "Tommaso Algozzino",
+      "email": "tommaso@adoratorio.com"
+    }, {
+      "name": "Andrea Gottardi",
+      "email": "andrea@adoratorio.com"
+    }, {
+      "name": "Daniele Borra",
+      "email": "daniele@adoratorio.com"
+    }
+  ],
   "license": "MIT",
   "devDependencies": {
     "typescript": "^3.3.3333"
