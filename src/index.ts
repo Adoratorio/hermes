@@ -88,23 +88,23 @@ class Hermes {
     this.callHandler(event);
   }
 
-  private scroll = (event : UIEvent) : void => {
+  private scroll = (event : Event) : void => {
     this.callHandler(event);
   }
 
-  private keydownAll = (event : KeyboardEvent) : void => {
+  private keydownAll = (event : Event) : void => {
     this.callHandler(event);
   }
 
-  private keydownSpacebar = (event : KeyboardEvent) : void => {
+  private keydownSpacebar = (event : Event) : void => {
     this.callHandler(event);
   }
 
-  private keydownArrows = (event : KeyboardEvent) : void => {
+  private keydownArrows = (event : Event) : void => {
     this.callHandler(event);
   }
 
-  private callHandler = (event : any) : void => {
+  private callHandler = (event : Event) : void => {
     this.handler(event);
   }
 

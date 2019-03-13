@@ -15,7 +15,7 @@ export enum EVENTS {
 export interface HermesOptions {
   mode : string,
   events : Array<EVENTS>,
-  container : HTMLElement,
+  container : HTMLElement | Window,
   hook : HTMLElement,
   passive : boolean,
   emitGlobal : boolean,
