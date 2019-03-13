@@ -11,20 +11,21 @@ class Hermes {
 
   private binded : boolean = false;
 
-  constructor(options : HermesOptions = {
-    mode: Hermes.MODE.VIRTUAL,
-    events: [
-      Hermes.EVENTS.WHEEL,
-      Hermes.EVENTS.TOUCH,
-      Hermes.EVENTS.KEYS,
-    ],
-    container: document.body,
-    hook: document.querySelector('.hermes-hook') || document.body,
-    passive: true,
-    emitGlobal: false,
-    touchClass: '.prevent-touch',
-  }) {
-    this.options = options;
+  constructor(options : HermesOptions) {
+    const defaults = {
+      mode: Hermes.MODE.VIRTUAL,
+      events: [
+        Hermes.EVENTS.WHEEL,
+        Hermes.EVENTS.TOUCH,
+        Hermes.EVENTS.KEYS,
+      ],
+      container: document.body,
+      hook: document.querySelector('.hermes-hook') || document.body,
+      passive: true,
+      emitGlobal: false,
+      touchClass: '.prevent-touch',
+    }
+    this.options = {...defaults, ...options};
 
     if ((options.mode === Hermes.MODE.VIRTUAL || options.mode === Hermes.MODE.NATIVE)
        && typeof options.container === 'undefined') {
