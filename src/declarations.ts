@@ -12,6 +12,19 @@ export enum EVENTS {
   KEYS = 'keys',
 }
 
+export enum KEYCODE {
+  LEFT = 37,
+  UP = 38,
+  RIGHT = 39,
+  DOWN = 40,
+  SPACE = 32,
+}
+
+export interface Vec2 {
+  x : number,
+  y : number,
+}
+
 export interface HermesOptions {
   mode : string,
   events : Array<EVENTS>,
@@ -22,13 +35,9 @@ export interface HermesOptions {
   touchClass : string,
 }
 
-export interface Delta {
-  x : number,
-  y : number,
-}
-
 export interface HermesEvent {
   type : EVENTS,
-  delta : Delta,
+  amount: Vec2,
+  delta : Vec2,
   originalEvent : Event,
 }

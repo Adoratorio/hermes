@@ -1,4 +1,4 @@
-import { MODE, EVENTS, HermesOptions } from './declarations';
+import { MODE, EVENTS, HermesOptions, HermesEvent, Vec2 } from './declarations';
 
 class Hermes {
   static MODE = MODE;
@@ -7,8 +7,7 @@ class Hermes {
   private options : HermesOptions;
   private handler : Function = () => {};
   private listening : boolean = true;
-  private touchNodes : Array<HTMLElement> = [];
-
+  private amount : Vec2 = { x: 0, y: 0};
   private binded : boolean = false;
 
   constructor(options : Partial<HermesOptions>) {
@@ -34,12 +33,6 @@ class Hermes {
     if (options.mode === Hermes.MODE.FAKE && typeof options.hook === 'undefined') {
       throw new Error('Hook cannot be undefined');
     }
-
-    this.generateTouchNodes();
-  }
-
-  public generateTouchNodes() {
-    this.touchNodes = Array.from(document.querySelectorAll(this.options.touchClass));
   }
 
   private bind() {
@@ -85,30 +78,73 @@ class Hermes {
   }
 
   private wheel = (event : Event) : void => {
-    this.callHandler(event);
+    console.log('event: ', event);
+    const customEvent : HermesEvent = {
+      type: Hermes.EVENTS.WHEEL,
+      amount: { x: 20, y: 20 },
+      delta: { x: event.deltaX, y: event.deltaY },
+      originalEvent: event,
+    };
+
+    this.callHandler(customEvent);
   }
 
   private scroll = (event : Event) : void => {
-    this.callHandler(event);
+    const customEvent : HermesEvent = {
+      type: Hermes.EVENTS.WHEEL,
+      amount: { x: 20, y: 20 },
+      delta: { x: 20, y: 20 },
+      originalEvent: event,
+    };
+
+    this.callHandler(customEvent);
   }
 
   private keydownAll = (event : Event) : void => {
-    this.callHandler(event);
+    const customEvent : HermesEvent = {
+      type: Hermes.EVENTS.KEYS,
+      amount: { x: 20, y: 20 },
+      delta: { x: 20, y: 20 },
+      originalEvent: event,
+    };
+
+    this.callHandler(customEvent);
   }
 
   private keydownSpacebar = (event : Event) : void => {
-    this.callHandler(event);
+    const customEvent : HermesEvent = {
+      type: Hermes.EVENTS.SPACEBAR,
+      amount: { x: 20, y: 20 },
+      delta: { x: 20, y: 20 },
+      originalEvent: event,
+    };
+
+    this.callHandler(customEvent);
   }
 
   private keydownArrows = (event : Event) : void => {
-    this.callHandler(event);
+    const customEvent : HermesEvent = {
+      type: Hermes.EVENTS.ARROWS,
+      amount: { x: 20, y: 20 },
+      delta: { x: 20, y: 20 },
+      originalEvent: event,
+    };
+
+    this.callHandler(customEvent);
   }
 
   private touchMove = (event : Event) : void => {
-    this.callHandler(event);
+    const customEvent : HermesEvent = {
+      type: Hermes.EVENTS.TOUCH,
+      amount: { x: 20, y: 20 },
+      delta: { x: 20, y: 20 },
+      originalEvent: event,
+    };
+
+    this.callHandler(customEvent);
   }
 
-  private callHandler = (event : Event) : void => {
+  private callHandler = (event : HermesEvent) : void => {
     this.handler(event);
   }
 
