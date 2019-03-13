@@ -11,7 +11,7 @@ class Hermes {
 
   private binded : boolean = false;
 
-  constructor(options : HermesOptions) {
+  constructor(options : Partial<HermesOptions>) {
     const defaults = {
       mode: Hermes.MODE.VIRTUAL,
       events: [
@@ -19,8 +19,8 @@ class Hermes {
         Hermes.EVENTS.TOUCH,
         Hermes.EVENTS.KEYS,
       ],
-      container: document.body,
-      hook: document.querySelector('.hermes-hook') || document.body,
+      container: document.querySelector('.hermes-container') as HTMLElement,
+      hook: document.querySelector('.hermes-hook') as HTMLElement,
       passive: true,
       emitGlobal: false,
       touchClass: '.prevent-touch',
