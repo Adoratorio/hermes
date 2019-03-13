@@ -21,3 +21,14 @@ export interface HermesOptions {
   emitGlobal : boolean,
   touchClass : string,
 }
+
+export interface Delta {
+  x : number,
+  y : number,
+}
+
+export interface HermesEvent {
+  type : EVENTS,
+  delta : Delta,
+  originalEvent : Event,
+}
