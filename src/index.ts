@@ -104,11 +104,11 @@ class Hermes {
     this.callHandler(event);
   }
 
-  private callHandler = (event : Event) : void => {
-    this.handler(event);
+  private touchMove = (event : Event) : void => {
+    this.callHandler(event);
   }
 
-  private touchMove = (event : Event) : void => {
+  private callHandler = (event : Event) : void => {
     this.handler(event);
   }
 
