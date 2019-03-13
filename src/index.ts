@@ -1,49 +1,29 @@
-enum MODE {
-  VIRTUAL = 'virtual',
-  FAKE = 'fake',
-  NATIVE = 'native',
-}
-
-enum EVENTS {
-  WHEEL = 'wheel',
-  TOUCH = 'touch',
-  SPACEBAR = 'spacebar',
-  ARROWS = 'arrows',
-  KEYS = 'keys',
-}
-
-interface HermesOptions {
-  mode : string,
-  events? : Array<EVENTS>,
-  container? : HTMLElement,
-  hook? : HTMLElement,
-  passive? : boolean,
-  emitGlobal? : boolean,
-}
+import { MODE, EVENTS, HermesOptions } from './declarations';
 
 class Hermes {
   static MODE = MODE;
   static EVENTS = EVENTS;
 
   private options : HermesOptions;
-  private handler : Function | undefined =  undefined;
+  private handler : Function = () => {};
   private listening : boolean = true;
-  private excludedNodes : Array<HTMLElement> = [];
+  private touchNodes : Array<HTMLElement> = [];
 
-  constructor(options : HermesOptions) {
-    const defaults : HermesOptions = {
-      mode: Hermes.MODE.VIRTUAL,
-      events: [
-        Hermes.EVENTS.WHEEL,
-        Hermes.EVENTS.TOUCH,
-        Hermes.EVENTS.KEYS,
-      ],
-      container: undefined,
-      hook: undefined,
-      passive: true,
-      emitGlobal: false,
-    };
-    Object.assign(options, defaults);
+  private binded : boolean = false;
+
+  constructor(options : HermesOptions = {
+    mode: Hermes.MODE.VIRTUAL,
+    events: [
+      Hermes.EVENTS.WHEEL,
+      Hermes.EVENTS.TOUCH,
+      Hermes.EVENTS.KEYS,
+    ],
+    container: document.body,
+    hook: document.querySelector('.hermes-hook') || document.body,
+    passive: true,
+    emitGlobal: false,
+    touchClass: '.prevent-touch',
+  }) {
     this.options = options;
 
     if ((options.mode === Hermes.MODE.VIRTUAL || options.mode === Hermes.MODE.NATIVE)
@@ -53,19 +33,88 @@ class Hermes {
     if (options.mode === Hermes.MODE.FAKE && typeof options.hook === 'undefined') {
       throw new Error('Hook cannot be undefined');
     }
+
+    this.generateTouchNodes();
   }
 
-  public set touchNodes(nodes : Array<HTMLElement>) {
-    this.excludedNodes = nodes;
+  public generateTouchNodes() {
+    this.touchNodes = Array.from(document.querySelectorAll(this.options.touchClass));
+  }
+
+  private bind() {
+    if (this.options.mode === Hermes.MODE.VIRTUAL) {
+      this.options.events.forEach((event) => {
+        switch (true) {
+          case event === 'wheel':
+            this.options.container.addEventListener('wheel', this.wheel, { passive: this.options.passive });
+            this.options.container.addEventListener('mousewheel', this.wheel);
+            break;
+
+          case event === 'touch':
+            // Bind the touch events
+            break;
+
+          case event === 'keys':
+            this.options.container.addEventListener('keydown', this.keydownAll);
+            break;
+
+          case event === 'spacebar' && this.options.events.indexOf(Hermes.EVENTS.KEYS) < 0:
+            this.options.container.addEventListener('keydown', this.keydownSpacebar);
+            break;
+
+          case event === 'arrows' && this.options.events.indexOf(Hermes.EVENTS.KEYS) < 0:
+            this.options.container.addEventListener('keydown', this.keydownArrows);
+            break;
+
+          default:
+            console.warn(`'${event}' is not recognized`);
+        }
+      });
+    } else if (this.options.mode === Hermes.MODE.NATIVE) {
+      this.options.container.addEventListener('scroll', this.scroll, { passive: this.options.passive });
+    } else if (this.options.mode === Hermes.MODE.FAKE) {
+      this.options.hook.addEventListener('scroll', this.scroll, { passive: this.options.passive });
+    } else {
+      console.warn(`'${this.options.mode}' is not a supported mode`);
+    }
+  }
+
+  private unbind() : void {
+
+  }
+
+  private wheel(event : Event) : void {
+    this.callHandler(event);
+  }
+
+  private scroll(event : UIEvent) : void {
+    this.callHandler(event);
+  }
+
+  private keydownAll(event : KeyboardEvent) : void {
+    this.callHandler(event);
+  }
+
+  private keydownSpacebar(event : KeyboardEvent) : void {
+    this.callHandler(event);
+  }
+
+  private keydownArrows(event : KeyboardEvent) : void {
+    this.callHandler(event);
+  }
+
+  private callHandler(event : any) : void {
+    this.handler(event);
   }
 
   public on(handler : Function) : void {
     this.handler = handler;
-    // Agganciare eventi
+    this.unbind();
+    this.bind()
   }
 
   public off() : void {
-    this.handler = undefined;
+    this.handler = () => {};
     // Sganciare eventi
   }
 
@@ -73,7 +122,7 @@ class Hermes {
     this.listening = true;
   }
 
-  public unlisten() : void {
+  public unlisten() {
     this.listening = false;
   }
 
