@@ -77,8 +77,7 @@ class Hermes {
 
   }
 
-  private wheel = (event : Event) : void => {
-    console.log('event: ', event);
+  private wheel : any = (event : WheelEvent) : void => {
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.WHEEL,
       amount: { x: 20, y: 20 },
@@ -89,7 +88,7 @@ class Hermes {
     this.callHandler(customEvent);
   }
 
-  private scroll = (event : Event) : void => {
+  private scroll : any = (event : UIEvent) : void => {
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.WHEEL,
       amount: { x: 20, y: 20 },
@@ -100,7 +99,7 @@ class Hermes {
     this.callHandler(customEvent);
   }
 
-  private keydownAll = (event : Event) : void => {
+  private keydownAll : any = (event : KeyboardEvent) : void => {
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.KEYS,
       amount: { x: 20, y: 20 },
@@ -111,7 +110,7 @@ class Hermes {
     this.callHandler(customEvent);
   }
 
-  private keydownSpacebar = (event : Event) : void => {
+  private keydownSpacebar : any = (event : KeyboardEvent) : void => {
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.SPACEBAR,
       amount: { x: 20, y: 20 },
@@ -122,7 +121,7 @@ class Hermes {
     this.callHandler(customEvent);
   }
 
-  private keydownArrows = (event : Event) : void => {
+  private keydownArrows : any = (event : KeyboardEvent) : void => {
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.ARROWS,
       amount: { x: 20, y: 20 },
