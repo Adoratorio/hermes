@@ -52,7 +52,7 @@ class Hermes {
             break;
 
           case event === 'touch':
-            // Bind the touch events
+            this.options.container.addEventListener('touchmove', this.touchMove);
             break;
 
           case event === 'keys':
@@ -105,6 +105,10 @@ class Hermes {
   }
 
   private callHandler = (event : Event) : void => {
+    this.handler(event);
+  }
+
+  private touchMove = (event : Event) : void => {
     this.handler(event);
   }
 
