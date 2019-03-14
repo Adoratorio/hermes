@@ -41,7 +41,6 @@ export interface HermesOptions {
 
 export interface HermesEvent {
   type : EVENTS,
-  amount: Vec2,
   delta : Vec2,
   originalEvent : Event,
 }
