@@ -46,6 +46,7 @@ class Hermes {
   }
 
   private bind() {
+    this.binded = true;
     if (this.options.mode === Hermes.MODE.VIRTUAL) {
       this.options.events.forEach((event) => {
         switch (true) {
@@ -101,6 +102,7 @@ class Hermes {
     if (this.options.mode === Hermes.MODE.FAKE) {
       this.options.hook.removeEventListener('scroll', this.scroll);
     }
+    this.binded = false;
   }
 
   private wheel : any = (event : WheelEvent) : void => {
@@ -186,13 +188,21 @@ class Hermes {
   }
 
   private callHandler = (event : HermesEvent) : void => {
-    if (this.listening) this.handler(event);
+    if (this.listening) {
+      this.handler(event);
+      if (this.options.emitGlobal) {
+        const e = event as CustomEventInit;
+        const customEvent : CustomEvent = new CustomEvent(`hermes-${event.type}`, e);
+        window.dispatchEvent(customEvent);
+      }
+    }
   }
 
   public on(handler : Function) : void {
+    if (this.binded) throw new Error('A handler is already binded');
     this.handler = handler;
     this.unbind();
-    this.bind()
+    this.bind();
   }
 
   public off() : void {
