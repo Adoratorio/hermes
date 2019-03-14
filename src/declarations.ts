@@ -20,6 +20,10 @@ export enum KEYCODE {
   SPACE = 32,
 }
 
+export enum DELTA_SCALE { STANDARD = 1, OTHERS = -3 };
+
+export const DELTA_MODE : Array<number> = [1.0, 28.0, 500.0];
+
 export interface Vec2 {
   x : number,
   y : number,

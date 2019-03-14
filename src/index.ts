@@ -1,4 +1,11 @@
-import { MODE, EVENTS, HermesOptions, HermesEvent, Vec2 } from './declarations';
+import {
+  MODE,
+  EVENTS,
+  HermesOptions,
+  HermesEvent,
+  Vec2,
+} from './declarations';
+import { normalizeDelta } from './utils';
 
 class Hermes {
   static MODE = MODE;
@@ -78,10 +85,15 @@ class Hermes {
   }
 
   private wheel : any = (event : WheelEvent) : void => {
+    const normalizedDelta : Vec2 = normalizeDelta(event);
+
+    this.amount.x += normalizedDelta.x;
+    this.amount.y += normalizedDelta.y;
+
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.WHEEL,
-      amount: { x: 20, y: 20 },
-      delta: { x: event.deltaX, y: event.deltaY },
+      amount: this.amount,
+      delta: normalizedDelta,
       originalEvent: event,
     };
 
