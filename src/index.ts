@@ -6,7 +6,7 @@ import {
   Vec2,
   KEYCODE,
 } from './declarations';
-import { normalizeDelta } from './utils';
+import { normalizeWheelDelta, normalizeKeyDelta } from './utils';
 
 class Hermes {
   static MODE = MODE;
@@ -91,11 +91,9 @@ class Hermes {
   }
 
   private wheel : any = (event : WheelEvent) : void => {
-    const delta : Vec2 = normalizeDelta(event);
-
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.WHEEL,
-      delta,
+      delta: normalizeWheelDelta(event),
       originalEvent: event,
     };
 
@@ -104,7 +102,7 @@ class Hermes {
 
   private scroll : any = (event : UIEvent) : void => {
     const w = this.options.container as Window;
-    const delta = {
+    const delta : Vec2 = {
       x: w.pageXOffset - this.lastScrollPosition.x,
       y: w.pageYOffset - this.lastScrollPosition.y,
     }
@@ -118,62 +116,29 @@ class Hermes {
   }
 
   private keydownAll : any = (event : KeyboardEvent) : void => {
-    let delta : Vec2 = { x: 0, y: 0 };
-    if (event.keyCode === Hermes.KEYCODE.SPACE) {
-      delta = { x: 0, y: window.innerHeight };
-    }
-    if (event.keyCode === Hermes.KEYCODE.DOWN) {
-      delta = { x: 0, y: 80 };
-    }
-    if (event.keyCode === Hermes.KEYCODE.UP) {
-      delta = { x: 0, y: -80 };
-    }
-    if (event.keyCode === Hermes.KEYCODE.RIGHT) {
-      delta = { x: 80, y: 0 };
-    }
-    if (event.keyCode === Hermes.KEYCODE.LEFT) {
-      delta = { x: -80, y: 0 };
-    }
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.KEYS,
-      delta,
+      delta: normalizeKeyDelta(event.keyCode),
       originalEvent: event,
     };
-    
+
     this.callHandler(customEvent);
   }
-  
+
   private keydownSpacebar : any = (event : KeyboardEvent) : void => {
-    let delta : Vec2 = { x: 0, y: 0 };
-    if (event.keyCode === Hermes.KEYCODE.SPACE) {
-      delta = { x: 0, y: window.innerHeight };
-    }
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.SPACEBAR,
-      delta,
+      delta: normalizeKeyDelta(event.keyCode),
       originalEvent: event,
     };
-    
+
     this.callHandler(customEvent);
   }
-  
+
   private keydownArrows : any = (event : KeyboardEvent) : void => {
-    let delta : Vec2 = { x: 0, y: 0 };
-    if (event.keyCode === Hermes.KEYCODE.DOWN) {
-      delta = { x: 0, y: 80 };
-    }
-    if (event.keyCode === Hermes.KEYCODE.UP) {
-      delta = { x: 0, y: -80 };
-    }
-    if (event.keyCode === Hermes.KEYCODE.RIGHT) {
-      delta = { x: 80, y: 0 };
-    }
-    if (event.keyCode === Hermes.KEYCODE.LEFT) {
-      delta = { x: -80, y: 0 };
-    }
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.ARROWS,
-      delta,
+      delta: normalizeKeyDelta(event.keyCode),
       originalEvent: event,
     };
 
