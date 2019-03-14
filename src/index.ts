@@ -1,10 +1,10 @@
 import {
   MODE,
   EVENTS,
-  HermesOptions,
-  HermesEvent,
-  Vec2,
   KEYCODE,
+  Vec2,
+  HermesEvent,
+  HermesOptions,
 } from './declarations';
 import { normalizeWheelDelta, normalizeKeyDelta } from './utils';
 
@@ -87,7 +87,20 @@ class Hermes {
   }
 
   private unbind() : void {
-
+    this.options.container.removeEventListener('wheel', this.wheel);
+    this.options.container.removeEventListener('mousewheel', this.wheel);
+    this.options.container.removeEventListener('touchstart', this.touchStart);
+    this.options.container.removeEventListener('touchend', this.touchEnd);
+    this.options.container.removeEventListener('touchmove', this.touchMove);
+    this.options.container.removeEventListener('keydown', this.keydownAll);
+    this.options.container.removeEventListener('keydown', this.keydownSpacebar);
+    this.options.container.removeEventListener('keydown', this.keydownArrows);
+    if (this.options.mode === Hermes.MODE.NATIVE) {
+      this.options.container.removeEventListener('scroll', this.scroll);
+    }
+    if (this.options.mode === Hermes.MODE.FAKE) {
+      this.options.hook.removeEventListener('scroll', this.scroll);
+    }
   }
 
   private wheel : any = (event : WheelEvent) : void => {
@@ -173,7 +186,7 @@ class Hermes {
   }
 
   private callHandler = (event : HermesEvent) : void => {
-    this.handler(event);
+    if (this.listening) this.handler(event);
   }
 
   public on(handler : Function) : void {
@@ -184,19 +197,15 @@ class Hermes {
 
   public off() : void {
     this.handler = () => {};
-    // Sganciare eventi
-  }
-
-  public listen() : void {
-    this.listening = true;
-  }
-
-  public unlisten() {
-    this.listening = false;
+    this.unbind();
   }
 
   public destroy() : void {
-    // Sganciare eventi e distruggere cose
+    this.off();
+  }
+  
+  public set listen(listening : boolean) {
+    this.listening = listening;
   }
 }
 
