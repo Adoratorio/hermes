@@ -132,7 +132,7 @@ class Hermes {
     this.callHandler(customEvent);
   }
 
-  private touchMove = (event : Event) : void => {
+  private touchMove : any = (event : TouchEvent) : void => {
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.TOUCH,
       amount: { x: 20, y: 20 },
