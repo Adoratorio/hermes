@@ -56,8 +56,8 @@ class Hermes {
             break;
 
           case event === 'touch':
-            this.options.container.addEventListener('touchstart', this.touchStart);
-            this.options.container.addEventListener('touchend', this.touchEnd);
+            this.options.container.addEventListener('touchstart', this.touchStart, { passive: this.options.passive });
+            this.options.container.addEventListener('touchend', this.touchEnd, { passive: this.options.passive });
             break;
 
           case event === 'keys':
