@@ -52,7 +52,7 @@ class Hermes {
         switch (true) {
           case event === 'wheel':
             this.options.container.addEventListener('wheel', this.wheel, { passive: this.options.passive });
-            this.options.container.addEventListener('mousewheel', this.wheel);
+            this.options.container.addEventListener('mousewheel', this.wheel, { passive: this.options.passive });
             break;
 
           case event === 'touch':
