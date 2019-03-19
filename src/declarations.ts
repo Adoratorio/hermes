@@ -37,6 +37,7 @@ export interface HermesOptions {
   passive : boolean,
   emitGlobal : boolean,
   touchClass : string,
+  touchMultiplier : number,
 }
 
 export interface HermesEvent {

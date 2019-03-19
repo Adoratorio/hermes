@@ -18,6 +18,8 @@ class Hermes {
   private listening : boolean = true;
   private binded : boolean = false;
   private prevTouchPosition : Vec2 = { x: 0, y: 0 };
+  private prevTouchTime : number = 0;
+  private speed : Vec2 = { x: 0, y: 0 };
   private lastScrollPosition : Vec2 = { x: 0, y: 0 };
 
   constructor(options : Partial<HermesOptions>) {
@@ -33,6 +35,7 @@ class Hermes {
       passive: true,
       emitGlobal: false,
       touchClass: '.prevent-touch',
+      touchMultiplier: 2,
     }
     this.options = {...defaults, ...options};
 
@@ -185,10 +188,29 @@ class Hermes {
       originalEvent: event,
     };
 
+    // Calculate touch speed
+    const now = performance.now();
+    const deltaT = now - this.prevTouchTime;
+    const speed = {
+      x: delta.x / deltaT * 16,
+      y: delta.y / deltaT * 16,
+    }
+    this.speed = {
+      x: (speed.x * 0.9 + this.speed.x * 0.1) * this.options.touchMultiplier,
+      y: (speed.y * 0.9 + this.speed.y * 0.1) * this.options.touchMultiplier,
+    }
+    this.prevTouchTime = now;
+
     this.callHandler(customEvent);
   }
 
   private touchEnd : any = (event : TouchEvent) : void => {
+    const customEvent : HermesEvent = {
+      type: Hermes.EVENTS.TOUCH,
+      delta: this.speed,
+      originalEvent: event,
+    }
+    this.callHandler(customEvent);
     this.options.container.removeEventListener('touchmove', this.touchMove);
   }
 
