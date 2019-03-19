@@ -218,8 +218,9 @@ class Hermes {
     if (this.listening) {
       this.handler(event);
       if (this.options.emitGlobal) {
-        const e = event as CustomEventInit;
-        const customEvent : CustomEvent = new CustomEvent(`hermes-${event.type}`, e);
+        const eventInit : CustomEventInit = {};
+        eventInit.detail = event;
+        const customEvent : CustomEvent = new CustomEvent(`hermes-${event.type}`, eventInit);
         window.dispatchEvent(customEvent);
       }
     }
