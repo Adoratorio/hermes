@@ -173,8 +173,8 @@ class Hermes {
 
   private touchMove : any = (event : TouchEvent) : void => {
     const delta : Vec2 = {
-      x: -(event.touches[0].clientX - this.prevTouchPosition.x),
-      y: -(event.touches[0].clientY - this.prevTouchPosition.y),
+      x: -(event.touches[0].clientX - this.prevTouchPosition.x) * this.options.touchMultiplier,
+      y: -(event.touches[0].clientY - this.prevTouchPosition.y) * this.options.touchMultiplier,
     };
 
     this.prevTouchPosition = {
@@ -196,8 +196,8 @@ class Hermes {
       y: delta.y / deltaT * 16,
     }
     this.speed = {
-      x: (speed.x * 0.9 + this.speed.x * 0.1) * this.options.touchMultiplier,
-      y: (speed.y * 0.9 + this.speed.y * 0.1) * this.options.touchMultiplier,
+      x: speed.x * 0.9 + this.speed.x * 0.1,
+      y: speed.y * 0.9 + this.speed.y * 0.1,
     }
     this.prevTouchTime = now;
 
