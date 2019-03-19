@@ -17,7 +17,7 @@ class Hermes {
   private handler : Function = () => {};
   private listening : boolean = true;
   private binded : boolean = false;
-  private touchStartPosition : Vec2 = { x: 0, y: 0 };
+  private prevTouchPosition : Vec2 = { x: 0, y: 0 };
   private lastScrollPosition : Vec2 = { x: 0, y: 0 };
 
   constructor(options : Partial<HermesOptions>) {
@@ -162,7 +162,7 @@ class Hermes {
 
   private touchStart : any = (event : TouchEvent) : void => {
     this.options.container.addEventListener('touchmove', this.touchMove);
-    this.touchStartPosition = {
+    this.prevTouchPosition = {
       x: event.touches[0].clientX,
       y: event.touches[0].clientY,
     };
@@ -170,8 +170,13 @@ class Hermes {
 
   private touchMove : any = (event : TouchEvent) : void => {
     const delta : Vec2 = {
-      x: -(event.touches[0].clientX - this.touchStartPosition.x),
-      y: -(event.touches[0].clientY - this.touchStartPosition.y),
+      x: -(event.touches[0].clientX - this.prevTouchPosition.x),
+      y: -(event.touches[0].clientY - this.prevTouchPosition.y),
+    };
+
+    this.prevTouchPosition = {
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY,
     };
 
     const customEvent : HermesEvent = {
