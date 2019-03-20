@@ -10,6 +10,7 @@ export enum EVENTS {
   SPACEBAR = 'spacebar',
   ARROWS = 'arrows',
   KEYS = 'keys',
+  SCROLL = 'scroll',
 }
 
 export enum KEYCODE {

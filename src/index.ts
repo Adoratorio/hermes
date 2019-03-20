@@ -124,8 +124,12 @@ class Hermes {
       x: w.pageXOffset - this.lastScrollPosition.x,
       y: w.pageYOffset - this.lastScrollPosition.y,
     }
+    this.lastScrollPosition = {
+      x: w.pageXOffset,
+      y: w.pageYOffset,
+    }
     const customEvent : HermesEvent = {
-      type: Hermes.EVENTS.WHEEL,
+      type: Hermes.EVENTS.SCROLL,
       delta,
       originalEvent: event,
     };
