@@ -84,8 +84,8 @@ class Hermes {
       const e = this.options.container as HTMLElement;
       const w = this.options.container as Window;
       this.lastScrollPosition = {
-        x: (w.pageXOffset || e.scrollLeft),
-        y: (w.pageYOffset || e.scrollTop)
+        x: (w.pageXOffset || e.scrollLeft || 0),
+        y: (w.pageYOffset || e.scrollTop || 0)
       };
     } else if (this.options.mode === Hermes.MODE.FAKE) {
       this.options.hook.addEventListener('scroll', this.scroll, { passive: this.options.passive });
@@ -126,12 +126,12 @@ class Hermes {
     const e = this.options.container as HTMLElement;
     const w = this.options.container as Window;
     const delta : Vec2 = {
-      x: (w.pageXOffset || e.scrollLeft) - this.lastScrollPosition.x,
-      y: (w.pageYOffset || e.scrollTop) - this.lastScrollPosition.y,
+      x: (w.pageXOffset || e.scrollLeft || 0) - this.lastScrollPosition.x,
+      y: (w.pageYOffset || e.scrollTop || 0) - this.lastScrollPosition.y,
     }
     this.lastScrollPosition = {
-      x: (w.pageXOffset || e.scrollLeft),
-      y: (w.pageYOffset || e.scrollTop),
+      x: (w.pageXOffset || e.scrollLeft || 0),
+      y: (w.pageYOffset || e.scrollTop || 0),
     }
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.SCROLL,
