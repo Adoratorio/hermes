@@ -1,9 +1,11 @@
 {
   "name": "@adoratorio/hermes",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "A JS utility for scroll events normalization and management",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": ["dist/**/*"],
   "scripts": {
     "build": "rm -rf dist && mkdir dist && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
