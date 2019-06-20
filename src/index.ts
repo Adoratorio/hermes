@@ -6,7 +6,7 @@ import {
   HermesEvent,
   HermesOptions,
 } from './declarations';
-import { normalizeWheelDelta, normalizeKeyDelta } from './utils';
+import { normalizeWheelDelta, normalizeKeyDelta, getTouch } from './utils';
 
 class Hermes {
   static MODE = MODE;
@@ -21,6 +21,7 @@ class Hermes {
   private prevTouchTime : number = 0;
   private speed : Vec2 = { x: 0, y: 0 };
   private lastScrollPosition : Vec2 = { x: 0, y: 0 };
+  private touchPointId : number = 0;
 
   constructor(options : Partial<HermesOptions>) {
     const defaults = {
@@ -173,6 +174,8 @@ class Hermes {
   }
 
   private touchStart : any = (event : TouchEvent) : void => {
+    if (this.touchPointId !== 0) return;
+    this.touchPointId = event.touches[0].identifier;
     this.options.container.addEventListener('touchmove', this.touchMove);
     this.prevTouchPosition = {
       x: event.touches[0].clientX,
@@ -181,14 +184,16 @@ class Hermes {
   }
 
   private touchMove : any = (event : TouchEvent) : void => {
+    const touchPoint : Touch | undefined = getTouch(event.touches, this.touchPointId);
+    if (touchPoint === undefined) return;
     const delta : Vec2 = {
-      x: -(event.touches[0].clientX - this.prevTouchPosition.x) * this.options.touchMultiplier,
-      y: -(event.touches[0].clientY - this.prevTouchPosition.y) * this.options.touchMultiplier,
+      x: -(touchPoint.clientX - this.prevTouchPosition.x) * this.options.touchMultiplier,
+      y: -(touchPoint.clientY - this.prevTouchPosition.y) * this.options.touchMultiplier,
     };
 
     this.prevTouchPosition = {
-      x: event.touches[0].clientX,
-      y: event.touches[0].clientY,
+      x: touchPoint.clientX,
+      y: touchPoint.clientY,
     };
 
     const customEvent : HermesEvent = {

@@ -62,3 +62,14 @@ export function normalizeKeyDelta(keycode : number) : Vec2 {
 
   return delta;
 };
+
+export function getTouch(list : TouchList, id : number) {
+  let found : Touch | undefined = undefined;
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].identifier === id) {
+      found = list[i];
+      break;
+    }
+  }
+  return found;
+}
