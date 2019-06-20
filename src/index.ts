@@ -225,7 +225,7 @@ class Hermes {
   }
 
   private touchEnd : any = (event : TouchEvent) : void => {
-    if (event.touches[0].identifier !== this.touchPointId) return;
+    if (getTouch(event.changedTouches, this.touchPointId) === undefined) return;
     this.touchPointId = 0;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.TOUCH,
