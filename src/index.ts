@@ -207,13 +207,17 @@ class Hermes {
     // Calculate touch speed
     const now = performance.now();
     const deltaT = now - this.prevTouchTime;
-    const speed = {
-      x: delta.x / deltaT * 16,
-      y: delta.y / deltaT * 16,
-    }
-    this.speed = {
-      x: speed.x * 0.9 + this.speed.x * 0.1,
-      y: speed.y * 0.9 + this.speed.y * 0.1,
+    // Calculate speed only if there is a time delta
+    // prevent bug on safari pitch to zoom
+    if (deltaT !== 0) {
+      const speed = {
+        x: delta.x / deltaT * 16,
+        y: delta.y / deltaT * 16,
+      }
+      this.speed = {
+        x: speed.x * 0.9 + this.speed.x * 0.1,
+        y: speed.y * 0.9 + this.speed.y * 0.1,
+      }
     }
     this.prevTouchTime = now;
 
@@ -221,6 +225,7 @@ class Hermes {
   }
 
   private touchEnd : any = (event : TouchEvent) : void => {
+    if (event.touches[0].identifier !== this.touchPointId) return;
     this.touchPointId = 0;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.TOUCH,
