@@ -219,6 +219,7 @@ class Hermes {
   }
 
   private touchEnd : any = (event : TouchEvent) : void => {
+    this.touchPointId = 0;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.TOUCH,
       delta: this.speed,
