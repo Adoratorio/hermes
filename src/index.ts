@@ -62,6 +62,7 @@ class Hermes {
           case event === 'touch':
             this.options.container.addEventListener('touchstart', this.touchStart, { passive: this.options.passive });
             this.options.container.addEventListener('touchend', this.touchEnd, { passive: this.options.passive });
+            this.options.container.addEventListener('touchcancel', this.touchEnd, { passive: this.options.passive });
             break;
 
           case event === 'keys':
@@ -100,6 +101,7 @@ class Hermes {
     this.options.container.removeEventListener('mousewheel', this.wheel);
     this.options.container.removeEventListener('touchstart', this.touchStart);
     this.options.container.removeEventListener('touchend', this.touchEnd);
+    this.options.container.removeEventListener('touchcancel', this.touchEnd);
     this.options.container.removeEventListener('touchmove', this.touchMove);
     this.options.container.removeEventListener('keydown', this.keydownAll);
     this.options.container.removeEventListener('keydown', this.keydownSpacebar);
