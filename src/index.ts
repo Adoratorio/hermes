@@ -146,6 +146,7 @@ class Hermes {
   }
 
   private keydownAll : any = (event : KeyboardEvent) : void => {
+    if ((event.target as HTMLElement).isContentEditable) return;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.KEYS,
       delta: normalizeKeyDelta(event.keyCode),
@@ -156,6 +157,7 @@ class Hermes {
   }
 
   private keydownSpacebar : any = (event : KeyboardEvent) : void => {
+    if ((event.target as HTMLElement).isContentEditable) return;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.SPACEBAR,
       delta: normalizeKeyDelta(event.keyCode),
@@ -166,6 +168,7 @@ class Hermes {
   }
 
   private keydownArrows : any = (event : KeyboardEvent) : void => {
+    if ((event.target as HTMLElement).isContentEditable) return;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.ARROWS,
       delta: normalizeKeyDelta(event.keyCode),
