@@ -147,6 +147,7 @@ class Hermes {
 
   private keydownAll : any = (event : KeyboardEvent) : void => {
     if ((event.target as HTMLElement).tagName === 'INPUT') return;
+    if ((event.target as HTMLElement).tagName === 'TEXTAREA') return;
     if ((event.target as HTMLElement).isContentEditable) return;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.KEYS,
@@ -159,6 +160,7 @@ class Hermes {
   
   private keydownSpacebar : any = (event : KeyboardEvent) : void => {
     if ((event.target as HTMLElement).tagName === 'INPUT') return;
+    if ((event.target as HTMLElement).tagName === 'TEXTAREA') return;
     if ((event.target as HTMLElement).isContentEditable) return;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.SPACEBAR,
@@ -171,6 +173,7 @@ class Hermes {
   
   private keydownArrows : any = (event : KeyboardEvent) : void => {
     if ((event.target as HTMLElement).tagName === 'INPUT') return;
+    if ((event.target as HTMLElement).tagName === 'TEXTAREA') return;
     if ((event.target as HTMLElement).isContentEditable) return;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.ARROWS,
