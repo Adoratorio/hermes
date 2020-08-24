@@ -37,6 +37,10 @@ class Hermes {
       emitGlobal: false,
       touchClass: '.prevent-touch',
       touchMultiplier: 2,
+      threshold: {
+        x: 3,
+        y: 3,
+      },
     }
     this.options = {...defaults, ...options};
 
@@ -246,7 +250,7 @@ class Hermes {
   }
 
   private callHandler = (event : HermesEvent) : void => {
-    if (this.listening) {
+    if (this.listening && event.delta.x > this.options.threshold.x && event.delta.y > this.options.threshold.y) {
       this.handler(event);
       if (this.options.emitGlobal) {
         const eventInit : CustomEventInit = {};

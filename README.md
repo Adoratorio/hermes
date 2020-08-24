@@ -32,6 +32,7 @@ Hermes accept in the constructor and `option` object with the following possible
 |emitGlobal|boolean|`false`|If you want to emit global event on the `window`|
 |touchClass|string|`'.prevent-touch'`|The class used to prevent touch|
 |touchMultiplier|number|2|A multiplier for touch values, less it's going to be slower scroll and require more user action to scroll, more will end up in a fast page scroll with minimum finger move|
+|threshold|`{ x: Number, y: Number }`|`{ x: 3, y: 3 }`|The minimum threshold for the native event needed to fire the virtual event
   
 ## APIs
 The main core exposes only two methods

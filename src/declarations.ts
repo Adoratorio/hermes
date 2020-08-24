@@ -39,10 +39,16 @@ export interface HermesOptions {
   emitGlobal : boolean,
   touchClass : string,
   touchMultiplier : number,
+  threshold : Threshold,
 }
 
 export interface HermesEvent {
   type : EVENTS,
   delta : Vec2,
   originalEvent : Event,
+}
+
+export interface Threshold {
+  x : number,
+  y : number,
 }
