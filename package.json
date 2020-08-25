@@ -1,6 +1,6 @@
 {
   "name": "@adoratorio/hermes",
-  "version": "0.1.32",
+  "version": "0.1.33",
   "description": "A JS utility for scroll events normalization and management",
   "main": "dist/index.js",
   "module": "dist/index.js",
