@@ -250,7 +250,11 @@ class Hermes {
   }
 
   private callHandler = (event : HermesEvent) : void => {
-    if (this.listening && event.delta.x > this.options.threshold.x && event.delta.y > this.options.threshold.y) {
+    if (
+      this.listening
+      && Math.abs(event.delta.x) > this.options.threshold.x
+      && Math.abs(event.delta.y) > this.options.threshold.y
+    ) {
       this.handler(event);
       if (this.options.emitGlobal) {
         const eventInit : CustomEventInit = {};
