@@ -19,6 +19,10 @@ export enum KEYCODE {
   RIGHT = 39,
   DOWN = 40,
   SPACE = 32,
+  PAGEUP = 33,
+  PAGEDOWN = 34,
+  PAGESTART = 36,
+  PAGEEND = 35,
 }
 
 export enum DELTA_SCALE { STANDARD = 1, OTHERS = -3 };

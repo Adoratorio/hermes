@@ -56,6 +56,22 @@ export function normalizeKeyDelta(keycode : number) : Vec2 {
       delta = { x: -80, y: 0 };
       break;
 
+    case keycode === KEYCODE.PAGEDOWN:
+      delta = { x: 0, y: window.innerHeight };
+      break;
+
+    case keycode === KEYCODE.PAGEUP:
+      delta = { x: 0, y: -window.innerHeight };
+      break;
+
+    case keycode === KEYCODE.PAGESTART:
+      delta = { x: 0, y: -9999999 };
+      break;
+
+    case keycode === KEYCODE.PAGEEND:
+      delta = { x: 0, y: 9999999 };
+      break;
+
     default:
       delta = { x: 0, y: 0 };
   }
