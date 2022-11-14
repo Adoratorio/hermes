@@ -1,6 +1,5 @@
 export enum MODE {
   VIRTUAL = 'virtual',
-  FAKE = 'fake',
   NATIVE = 'native',
 }
 
@@ -37,8 +36,7 @@ export interface Vec2 {
 export interface HermesOptions {
   mode : string,
   events : Array<EVENTS>,
-  container : HTMLElement | Window,
-  hook : HTMLElement,
+  root : HTMLElement | Window,
   passive : boolean,
   emitGlobal : boolean,
   touchClass : string,

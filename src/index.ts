@@ -31,8 +31,7 @@ class Hermes {
         Hermes.EVENTS.TOUCH,
         Hermes.EVENTS.KEYS,
       ],
-      container: document.querySelector('.hermes-container') as HTMLElement,
-      hook: document.querySelector('.hermes-hook') as HTMLElement,
+      root: document.querySelector('.hermes-container') as HTMLElement,
       passive: true,
       emitGlobal: false,
       touchClass: '.prevent-touch',
@@ -41,11 +40,8 @@ class Hermes {
     this.options = {...defaults, ...options};
 
     if ((options.mode === Hermes.MODE.VIRTUAL || options.mode === Hermes.MODE.NATIVE)
-       && typeof options.container === 'undefined') {
+       && typeof options.root === 'undefined') {
       throw new Error('Container cannot be undefined');
-    }
-    if (options.mode === Hermes.MODE.FAKE && typeof options.hook === 'undefined') {
-      throw new Error('Hook cannot be undefined');
     }
   }
 
@@ -55,26 +51,26 @@ class Hermes {
       this.options.events.forEach((event) => {
         switch (true) {
           case event === 'wheel':
-            this.options.container.addEventListener('wheel', this.wheel, { passive: this.options.passive });
-            this.options.container.addEventListener('mousewheel', this.wheel, { passive: this.options.passive });
+            this.options.root.addEventListener('wheel', this.wheel, { passive: this.options.passive });
+            this.options.root.addEventListener('mousewheel', this.wheel, { passive: this.options.passive });
             break;
 
           case event === 'touch':
-            this.options.container.addEventListener('touchstart', this.touchStart, { passive: this.options.passive });
-            this.options.container.addEventListener('touchend', this.touchEnd, { passive: this.options.passive });
-            this.options.container.addEventListener('touchcancel', this.touchEnd, { passive: this.options.passive });
+            this.options.root.addEventListener('touchstart', this.touchStart, { passive: this.options.passive });
+            this.options.root.addEventListener('touchend', this.touchEnd, { passive: this.options.passive });
+            this.options.root.addEventListener('touchcancel', this.touchEnd, { passive: this.options.passive });
             break;
 
           case event === 'keys':
-            this.options.container.addEventListener('keydown', this.keydownAll);
+            this.options.root.addEventListener('keydown', this.keydownAll);
             break;
 
           case event === 'spacebar' && this.options.events.indexOf(Hermes.EVENTS.KEYS) < 0:
-            this.options.container.addEventListener('keydown', this.keydownSpacebar);
+            this.options.root.addEventListener('keydown', this.keydownSpacebar);
             break;
 
           case event === 'arrows' && this.options.events.indexOf(Hermes.EVENTS.KEYS) < 0:
-            this.options.container.addEventListener('keydown', this.keydownArrows);
+            this.options.root.addEventListener('keydown', this.keydownArrows);
             break;
 
           default:
@@ -82,35 +78,30 @@ class Hermes {
         }
       });
     } else if (this.options.mode === Hermes.MODE.NATIVE) {
-      this.options.container.addEventListener('scroll', this.scroll, { passive: this.options.passive });
-      const e = this.options.container as HTMLElement;
-      const w = this.options.container as Window;
+      this.options.root.addEventListener('scroll', this.scroll, { passive: this.options.passive });
+      const e = this.options.root as HTMLElement;
+      const w = this.options.root as Window;
       this.lastScrollPosition = {
         x: (w.pageXOffset || e.scrollLeft || 0),
         y: (w.pageYOffset || e.scrollTop || 0)
       };
-    } else if (this.options.mode === Hermes.MODE.FAKE) {
-      this.options.hook.addEventListener('scroll', this.scroll, { passive: this.options.passive });
     } else {
       console.warn(`'${this.options.mode}' is not a supported mode`);
     }
   }
 
   private unbind() : void {
-    this.options.container.removeEventListener('wheel', this.wheel);
-    this.options.container.removeEventListener('mousewheel', this.wheel);
-    this.options.container.removeEventListener('touchstart', this.touchStart);
-    this.options.container.removeEventListener('touchend', this.touchEnd);
-    this.options.container.removeEventListener('touchcancel', this.touchEnd);
-    this.options.container.removeEventListener('touchmove', this.touchMove);
-    this.options.container.removeEventListener('keydown', this.keydownAll);
-    this.options.container.removeEventListener('keydown', this.keydownSpacebar);
-    this.options.container.removeEventListener('keydown', this.keydownArrows);
+    this.options.root.removeEventListener('wheel', this.wheel);
+    this.options.root.removeEventListener('mousewheel', this.wheel);
+    this.options.root.removeEventListener('touchstart', this.touchStart);
+    this.options.root.removeEventListener('touchend', this.touchEnd);
+    this.options.root.removeEventListener('touchcancel', this.touchEnd);
+    this.options.root.removeEventListener('touchmove', this.touchMove);
+    this.options.root.removeEventListener('keydown', this.keydownAll);
+    this.options.root.removeEventListener('keydown', this.keydownSpacebar);
+    this.options.root.removeEventListener('keydown', this.keydownArrows);
     if (this.options.mode === Hermes.MODE.NATIVE) {
-      this.options.container.removeEventListener('scroll', this.scroll);
-    }
-    if (this.options.mode === Hermes.MODE.FAKE) {
-      this.options.hook.removeEventListener('scroll', this.scroll);
+      this.options.root.removeEventListener('scroll', this.scroll);
     }
     this.binded = false;
   }
@@ -126,8 +117,8 @@ class Hermes {
   }
 
   private scroll : any = (event : UIEvent) : void => {
-    const e = this.options.container as HTMLElement;
-    const w = this.options.container as Window;
+    const e = this.options.root as HTMLElement;
+    const w = this.options.root as Window;
     const delta : Vec2 = {
       x: (w.pageXOffset || e.scrollLeft || 0) - this.lastScrollPosition.x,
       y: (w.pageYOffset || e.scrollTop || 0) - this.lastScrollPosition.y,
@@ -187,7 +178,7 @@ class Hermes {
   private touchStart : any = (event : TouchEvent) : void => {
     if (this.touchPointId !== 0) return;
     this.touchPointId = event.touches[0].identifier;
-    this.options.container.addEventListener('touchmove', this.touchMove);
+    this.options.root.addEventListener('touchmove', this.touchMove);
     this.prevTouchPosition = {
       x: event.touches[0].clientX,
       y: event.touches[0].clientY,
@@ -242,7 +233,7 @@ class Hermes {
       originalEvent: event,
     }
     this.callHandler(customEvent);
-    this.options.container.removeEventListener('touchmove', this.touchMove);
+    this.options.root.removeEventListener('touchmove', this.touchMove);
   }
 
   private callHandler = (event : HermesEvent) : void => {
