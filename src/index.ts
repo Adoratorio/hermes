@@ -24,7 +24,7 @@ class Hermes {
   private touchPointId : number = 0;
 
   constructor(options : Partial<HermesOptions>) {
-    const defaults = {
+    const defaults : HermesOptions = {
       mode: Hermes.MODE.VIRTUAL,
       events: [
         Hermes.EVENTS.WHEEL,
@@ -36,6 +36,7 @@ class Hermes {
       emitGlobal: false,
       touchClass: '.prevent-touch',
       touchMultiplier: 2,
+      keyMultiplier: 1,
     }
     this.options = {...defaults, ...options};
 
@@ -142,7 +143,7 @@ class Hermes {
     if ((event.target as HTMLElement).isContentEditable) return;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.KEYS,
-      delta: normalizeKeyDelta(event.keyCode),
+      delta: normalizeKeyDelta(event.keyCode, this.options.keyMultiplier),
       originalEvent: event,
     };
     
@@ -155,7 +156,7 @@ class Hermes {
     if ((event.target as HTMLElement).isContentEditable) return;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.SPACEBAR,
-      delta: normalizeKeyDelta(event.keyCode),
+      delta: normalizeKeyDelta(event.keyCode, this.options.keyMultiplier),
       originalEvent: event,
     };
     
@@ -168,7 +169,7 @@ class Hermes {
     if ((event.target as HTMLElement).isContentEditable) return;
     const customEvent : HermesEvent = {
       type: Hermes.EVENTS.ARROWS,
-      delta: normalizeKeyDelta(event.keyCode),
+      delta: normalizeKeyDelta(event.keyCode, this.options.keyMultiplier),
       originalEvent: event,
     };
 

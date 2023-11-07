@@ -41,10 +41,23 @@ export interface HermesOptions {
   emitGlobal : boolean,
   touchClass : string,
   touchMultiplier : number,
+  keyMultiplier : number | KeyMultipliers,
 }
 
 export interface HermesEvent {
   type : EVENTS,
   delta : Vec2,
   originalEvent : Event,
+}
+
+export interface KeyMultipliers extends Record<number, number> {
+  [KEYCODE.LEFT] : number,
+  [KEYCODE.UP] : number,
+  [KEYCODE.RIGHT] : number,
+  [KEYCODE.DOWN] : number,
+  [KEYCODE.SPACE] : number,
+  [KEYCODE.PAGEUP] : number,
+  [KEYCODE.PAGEDOWN] : number,
+  [KEYCODE.PAGESTART] : number,
+  [KEYCODE.PAGEEND] : number,
 }

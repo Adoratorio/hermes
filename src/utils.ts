@@ -3,6 +3,7 @@ import {
   DELTA_MODE,
   KEYCODE,
   Vec2,
+  KeyMultipliers,
 } from './declarations';
 
 
@@ -32,36 +33,37 @@ export function normalizeWheelDelta(event: any) : Vec2 {
   };
 }
 
-export function normalizeKeyDelta(keycode : number) : Vec2 {
+export function normalizeKeyDelta(keycode : number, multiplier : number | KeyMultipliers = 1) : Vec2 {
   let delta : Vec2 = { x: 0, y: 0 };
+  const m = (typeof multiplier === 'number' ? multiplier : multiplier[keycode]) || 1;
 
   switch (true) {
     case keycode === KEYCODE.SPACE:
-      delta = { x: 0, y: window.innerHeight };
+      delta = { x: 0, y: window.innerHeight * m };
       break;
 
     case keycode === KEYCODE.DOWN:
-      delta = { x: 0, y: 80 };
+      delta = { x: 0, y: 80 * m };
       break;
 
     case keycode === KEYCODE.UP:
-      delta = { x: 0, y: -80 };
+      delta = { x: 0, y: -80 * m };
       break;
 
     case keycode === KEYCODE.RIGHT:
-      delta = { x: 80, y: 0 };
+      delta = { x: 80 * m, y: 0 };
       break;
 
     case keycode === KEYCODE.LEFT:
-      delta = { x: -80, y: 0 };
+      delta = { x: -80 * m, y: 0 };
       break;
 
     case keycode === KEYCODE.PAGEDOWN:
-      delta = { x: 0, y: window.innerHeight };
+      delta = { x: 0, y: window.innerHeight * m };
       break;
 
     case keycode === KEYCODE.PAGEUP:
-      delta = { x: 0, y: -window.innerHeight };
+      delta = { x: 0, y: -window.innerHeight * m };
       break;
 
     case keycode === KEYCODE.PAGESTART:
