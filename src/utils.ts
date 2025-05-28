@@ -7,11 +7,11 @@ import {
 } from './declarations';
 
 
-const getDeltaMode : Function = (mode : number) : number => DELTA_MODE[mode] || DELTA_MODE[0];
+const getDeltaMode: Function = (mode: number): number => DELTA_MODE[mode] || DELTA_MODE[0] || 1.0;
 
-export function normalizeWheelDelta(event: any) : Vec2 {
+export function normalizeWheelDelta(event: any): Vec2 {
   if ('deltaX' in event) {
-    const mode : number = getDeltaMode(event.deltaMode);
+    const mode: number = getDeltaMode(event.deltaMode);
 
     return {
       x: event.deltaX / DELTA_SCALE.STANDARD * mode,
@@ -33,8 +33,8 @@ export function normalizeWheelDelta(event: any) : Vec2 {
   };
 }
 
-export function normalizeKeyDelta(keycode : number, multiplier : number | KeyMultipliers = 1) : Vec2 {
-  let delta : Vec2 = { x: 0, y: 0 };
+export function normalizeKeyDelta(keycode: number, multiplier: number | KeyMultipliers = 1): Vec2 {
+  let delta: Vec2 = { x: 0, y: 0 };
   const m = (typeof multiplier === 'number' ? multiplier : multiplier[keycode]) || 1;
 
   switch (true) {
@@ -81,10 +81,10 @@ export function normalizeKeyDelta(keycode : number, multiplier : number | KeyMul
   return delta;
 };
 
-export function getTouch(list : TouchList, id : number) {
-  let found : Touch | undefined = undefined;
+export function getTouch(list: TouchList, id: number) {
+  let found: Touch | undefined = undefined;
   for (let i = 0; i < list.length; i++) {
-    if (list[i].identifier === id) {
+    if (list[i]?.identifier === id) {
       found = list[i];
       break;
     }

@@ -13,18 +13,18 @@ class Hermes {
   static EVENTS = EVENTS;
   static KEYCODE = KEYCODE;
 
-  private options : HermesOptions;
-  private handler : Function = () => {};
-  private listening : boolean = true;
-  private binded : boolean = false;
-  private prevTouchPosition : Vec2 = { x: 0, y: 0 };
-  private prevTouchTime : number = 0;
-  private speed : Vec2 = { x: 0, y: 0 };
-  private lastScrollPosition : Vec2 = { x: 0, y: 0 };
-  private touchPointId : number = 0;
+  private options: HermesOptions;
+  private handler: Function = () => {};
+  private listening: boolean = true;
+  private binded: boolean = false;
+  private prevTouchPosition: Vec2 = { x: 0, y: 0 };
+  private prevTouchTime: number = 0;
+  private speed: Vec2 = { x: 0, y: 0 };
+  private lastScrollPosition: Vec2 = { x: 0, y: 0 };
+  private touchPointId: number = 0;
 
-  constructor(options : Partial<HermesOptions>) {
-    const defaults : HermesOptions = {
+  constructor(options: Partial<HermesOptions>) {
+    const defaults: HermesOptions = {
       mode: Hermes.MODE.VIRTUAL,
       events: [
         Hermes.EVENTS.WHEEL,
@@ -91,7 +91,7 @@ class Hermes {
     }
   }
 
-  private unbind() : void {
+  private unbind(): void {
     this.options.root.removeEventListener('wheel', this.wheel);
     this.options.root.removeEventListener('mousewheel', this.wheel);
     this.options.root.removeEventListener('touchstart', this.touchStart);
@@ -107,8 +107,8 @@ class Hermes {
     this.binded = false;
   }
 
-  private wheel : any = (event : WheelEvent) : void => {
-    const customEvent : HermesEvent = {
+  private wheel: any = (event: WheelEvent): void => {
+    const customEvent: HermesEvent = {
       type: Hermes.EVENTS.WHEEL,
       delta: normalizeWheelDelta(event),
       originalEvent: event,
@@ -117,10 +117,10 @@ class Hermes {
     this.callHandler(customEvent);
   }
 
-  private scroll : any = (event : UIEvent) : void => {
+  private scroll: any = (event: UIEvent): void => {
     const e = this.options.root as HTMLElement;
     const w = this.options.root as Window;
-    const delta : Vec2 = {
+    const delta: Vec2 = {
       x: (w.pageXOffset || e.scrollLeft || 0) - this.lastScrollPosition.x,
       y: (w.pageYOffset || e.scrollTop || 0) - this.lastScrollPosition.y,
     }
@@ -128,7 +128,7 @@ class Hermes {
       x: (w.pageXOffset || e.scrollLeft || 0),
       y: (w.pageYOffset || e.scrollTop || 0),
     }
-    const customEvent : HermesEvent = {
+    const customEvent: HermesEvent = {
       type: Hermes.EVENTS.SCROLL,
       delta,
       originalEvent: event,
@@ -137,11 +137,11 @@ class Hermes {
     this.callHandler(customEvent);
   }
 
-  private keydownAll : any = (event : KeyboardEvent) : void => {
+  private keydownAll: any = (event: KeyboardEvent): void => {
     if ((event.target as HTMLElement).tagName === 'INPUT') return;
     if ((event.target as HTMLElement).tagName === 'TEXTAREA') return;
     if ((event.target as HTMLElement).isContentEditable) return;
-    const customEvent : HermesEvent = {
+    const customEvent: HermesEvent = {
       type: Hermes.EVENTS.KEYS,
       delta: normalizeKeyDelta(event.keyCode, this.options.keyMultiplier),
       originalEvent: event,
@@ -150,11 +150,11 @@ class Hermes {
     this.callHandler(customEvent);
   }
   
-  private keydownSpacebar : any = (event : KeyboardEvent) : void => {
+  private keydownSpacebar: any = (event: KeyboardEvent): void => {
     if ((event.target as HTMLElement).tagName === 'INPUT') return;
     if ((event.target as HTMLElement).tagName === 'TEXTAREA') return;
     if ((event.target as HTMLElement).isContentEditable) return;
-    const customEvent : HermesEvent = {
+    const customEvent: HermesEvent = {
       type: Hermes.EVENTS.SPACEBAR,
       delta: normalizeKeyDelta(event.keyCode, this.options.keyMultiplier),
       originalEvent: event,
@@ -163,11 +163,11 @@ class Hermes {
     this.callHandler(customEvent);
   }
   
-  private keydownArrows : any = (event : KeyboardEvent) : void => {
+  private keydownArrows: any = (event: KeyboardEvent): void => {
     if ((event.target as HTMLElement).tagName === 'INPUT') return;
     if ((event.target as HTMLElement).tagName === 'TEXTAREA') return;
     if ((event.target as HTMLElement).isContentEditable) return;
-    const customEvent : HermesEvent = {
+    const customEvent: HermesEvent = {
       type: Hermes.EVENTS.ARROWS,
       delta: normalizeKeyDelta(event.keyCode, this.options.keyMultiplier),
       originalEvent: event,
@@ -176,8 +176,8 @@ class Hermes {
     this.callHandler(customEvent);
   }
 
-  private touchStart : any = (event : TouchEvent) : void => {
-    if (this.touchPointId !== 0) return;
+  private touchStart: any = (event: TouchEvent): void => {
+    if (this.touchPointId !== 0 || !event.touches[0]) return;
     this.touchPointId = event.touches[0].identifier;
     this.options.root.addEventListener('touchmove', this.touchMove);
     this.prevTouchPosition = {
@@ -186,10 +186,10 @@ class Hermes {
     };
   }
 
-  private touchMove : any = (event : TouchEvent) : void => {
-    const touchPoint : Touch | undefined = getTouch(event.touches, this.touchPointId);
+  private touchMove: any = (event: TouchEvent): void => {
+    const touchPoint: Touch | undefined = getTouch(event.touches, this.touchPointId);
     if (touchPoint === undefined) return;
-    const delta : Vec2 = {
+    const delta: Vec2 = {
       x: -(touchPoint.clientX - this.prevTouchPosition.x) * this.options.touchMultiplier,
       y: -(touchPoint.clientY - this.prevTouchPosition.y) * this.options.touchMultiplier,
     };
@@ -199,7 +199,7 @@ class Hermes {
       y: touchPoint.clientY,
     };
 
-    const customEvent : HermesEvent = {
+    const customEvent: HermesEvent = {
       type: Hermes.EVENTS.TOUCH,
       delta,
       originalEvent: event,
@@ -225,10 +225,10 @@ class Hermes {
     this.callHandler(customEvent);
   }
 
-  private touchEnd : any = (event : TouchEvent) : void => {
+  private touchEnd: any = (event: TouchEvent): void => {
     if (getTouch(event.changedTouches, this.touchPointId) === undefined) return;
     this.touchPointId = 0;
-    const customEvent : HermesEvent = {
+    const customEvent: HermesEvent = {
       type: Hermes.EVENTS.TOUCH,
       delta: this.speed,
       originalEvent: event,
@@ -237,35 +237,35 @@ class Hermes {
     this.options.root.removeEventListener('touchmove', this.touchMove);
   }
 
-  private callHandler = (event : HermesEvent) : void => {
+  private callHandler = (event: HermesEvent): void => {
     if (this.listening) {
       this.handler(event);
       if (this.options.emitGlobal) {
-        const eventInit : CustomEventInit = {};
+        const eventInit: CustomEventInit = {};
         eventInit.detail = event;
-        const customEvent : CustomEvent = new CustomEvent(`hermes-${event.type}`, eventInit);
+        const customEvent: CustomEvent = new CustomEvent(`hermes-${event.type}`, eventInit);
         window.dispatchEvent(customEvent);
       }
     }
   }
 
-  public on(handler : Function) : void {
+  public on(handler: Function): void {
     if (this.binded) throw new Error('A handler is already binded');
     this.handler = handler;
     this.unbind();
     this.bind();
   }
 
-  public off() : void {
+  public off(): void {
     this.handler = () => {};
     this.unbind();
   }
 
-  public destroy() : void {
+  public destroy(): void {
     this.off();
   }
   
-  public set listen(listening : boolean) {
+  public set listen(listening: boolean) {
     this.listening = listening;
   }
 }

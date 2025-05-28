@@ -1,6 +1,6 @@
 {
   "name": "@adoratorio/hermes",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A JS utility for scroll events normalization and management",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -27,7 +27,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^4.8.4"
+    "typescript": "^5.8.3"
   },
   "repository": {
     "type": "git",

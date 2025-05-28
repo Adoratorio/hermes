@@ -26,38 +26,38 @@ export enum KEYCODE {
 
 export enum DELTA_SCALE { STANDARD = 1, OTHERS = -3 };
 
-export const DELTA_MODE : Array<number> = [1.0, 28.0, 500.0];
+export const DELTA_MODE: Array<number> = [1.0, 28.0, 500.0];
 
 export interface Vec2 {
-  x : number,
-  y : number,
+  x: number,
+  y: number,
 }
 
 export interface HermesOptions {
-  mode : string,
-  events : Array<EVENTS>,
-  root : HTMLElement | Window,
-  passive : boolean,
-  emitGlobal : boolean,
-  touchClass : string,
-  touchMultiplier : number,
-  keyMultiplier : number | KeyMultipliers,
+  mode: string,
+  events: Array<EVENTS>,
+  root: HTMLElement | Window,
+  passive: boolean,
+  emitGlobal: boolean,
+  touchClass: string,
+  touchMultiplier: number,
+  keyMultiplier: number | KeyMultipliers,
 }
 
 export interface HermesEvent {
-  type : EVENTS,
-  delta : Vec2,
-  originalEvent : Event,
+  type: EVENTS,
+  delta: Vec2,
+  originalEvent: Event,
 }
 
 export interface KeyMultipliers extends Record<number, number> {
-  [KEYCODE.LEFT] : number,
-  [KEYCODE.UP] : number,
-  [KEYCODE.RIGHT] : number,
-  [KEYCODE.DOWN] : number,
-  [KEYCODE.SPACE] : number,
-  [KEYCODE.PAGEUP] : number,
-  [KEYCODE.PAGEDOWN] : number,
-  [KEYCODE.PAGESTART] : number,
-  [KEYCODE.PAGEEND] : number,
+  [KEYCODE.LEFT]: number,
+  [KEYCODE.UP]: number,
+  [KEYCODE.RIGHT]: number,
+  [KEYCODE.DOWN]: number,
+  [KEYCODE.SPACE]: number,
+  [KEYCODE.PAGEUP]: number,
+  [KEYCODE.PAGEDOWN]: number,
+  [KEYCODE.PAGESTART]: number,
+  [KEYCODE.PAGEEND]: number,
 }
