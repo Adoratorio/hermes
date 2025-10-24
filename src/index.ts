@@ -104,6 +104,7 @@ class Hermes {
     if (this.options.mode === Hermes.MODE.NATIVE) {
       this.options.root.removeEventListener('scroll', this.scroll);
     }
+    this.touchPointId = 0;
     this.binded = false;
   }
 
