@@ -21,9 +21,14 @@ class Hermes {
   private prevTouchTime: number = 0;
   private speed: Vec2 = { x: 0, y: 0 };
   private lastScrollPosition: Vec2 = { x: 0, y: 0 };
-  private touchPointId: number = 0;
+  private touchPointId: number | null = null;
 
   constructor(options: Partial<HermesOptions>) {
+    // Resolve the fallback root lazily and only in the browser so constructing
+    // with an explicit root never touches `document` (SSR-safe)
+    const fallbackRoot = (typeof options.root === 'undefined' && typeof document !== 'undefined')
+      ? document.querySelector('.hermes-container') as HTMLElement
+      : undefined as unknown as HTMLElement;
     const defaults: HermesOptions = {
       mode: Hermes.MODE.VIRTUAL,
       events: [
@@ -31,7 +36,7 @@ class Hermes {
         Hermes.EVENTS.TOUCH,
         Hermes.EVENTS.KEYS,
       ],
-      root: document.querySelector('.hermes-container') as HTMLElement,
+      root: fallbackRoot,
       passive: true,
       emitGlobal: false,
       touchClass: '.prevent-touch',
@@ -104,7 +109,7 @@ class Hermes {
     if (this.options.mode === Hermes.MODE.NATIVE) {
       this.options.root.removeEventListener('scroll', this.scroll);
     }
-    this.touchPointId = 0;
+    this.touchPointId = null;
     this.binded = false;
   }
 
@@ -178,7 +183,8 @@ class Hermes {
   }
 
   private touchStart: any = (event: TouchEvent): void => {
-    if (this.touchPointId !== 0 || !event.touches[0]) return;
+    // `null` sentinel: touch identifiers are 0-based on some browsers (Android)
+    if (this.touchPointId !== null || !event.touches[0]) return;
     this.touchPointId = event.touches[0].identifier;
     this.options.root.addEventListener('touchmove', this.touchMove);
     this.prevTouchPosition = {
@@ -188,6 +194,7 @@ class Hermes {
   }
 
   private touchMove: any = (event: TouchEvent): void => {
+    if (this.touchPointId === null) return;
     const touchPoint: Touch | undefined = getTouch(event.touches, this.touchPointId);
     if (touchPoint === undefined) return;
     const delta: Vec2 = {
@@ -227,8 +234,9 @@ class Hermes {
   }
 
   private touchEnd: any = (event: TouchEvent): void => {
+    if (this.touchPointId === null) return;
     if (getTouch(event.changedTouches, this.touchPointId) === undefined) return;
-    this.touchPointId = 0;
+    this.touchPointId = null;
     const customEvent: HermesEvent = {
       type: Hermes.EVENTS.TOUCH,
       delta: this.speed,
