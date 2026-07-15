@@ -1,35 +1,36 @@
-import {
-  DELTA_SCALE,
-  DELTA_MODE,
-  KEYCODE,
-  Vec2,
-  KeyMultipliers,
-} from './declarations';
+import { DELTA_MODE, DELTA_SCALE, KEYCODE, type KeyMultipliers, type Vec2 } from './declarations.ts';
 
+interface LegacyWheelData {
+  wheelDelta: number;
+  wheelDeltaX?: number;
+  wheelDeltaY?: number;
+}
 
-const getDeltaMode: Function = (mode: number): number => DELTA_MODE[mode] || DELTA_MODE[0] || 1.0;
+const getDeltaMode = (mode: number): number => DELTA_MODE[mode] ?? DELTA_MODE[0] ?? 1;
 
-export function normalizeWheelDelta(event: any): Vec2 {
+export function normalizeWheelDelta(event: WheelEvent): Vec2 {
   if ('deltaX' in event) {
-    const mode: number = getDeltaMode(event.deltaMode);
+    const mode = getDeltaMode(event.deltaMode);
 
     return {
-      x: event.deltaX / DELTA_SCALE.STANDARD * mode,
-      y: event.deltaY / DELTA_SCALE.STANDARD * mode,
+      x: (event.deltaX / DELTA_SCALE.STANDARD) * mode,
+      y: (event.deltaY / DELTA_SCALE.STANDARD) * mode,
     };
   }
 
-  if ('wheelDeltaX' in event) {
+  const legacy = event as unknown as LegacyWheelData;
+
+  if (typeof legacy.wheelDeltaX === 'number' && typeof legacy.wheelDeltaY === 'number') {
     return {
-      x: event.wheelDeltaX / DELTA_SCALE.OTHERS,
-      y: event.wheelDeltaY / DELTA_SCALE.OTHERS,
+      x: legacy.wheelDeltaX / DELTA_SCALE.OTHERS,
+      y: legacy.wheelDeltaY / DELTA_SCALE.OTHERS,
     };
   }
 
   // ie with touchpad
   return {
     x: 0,
-    y: event.wheelDelta / DELTA_SCALE.OTHERS,
+    y: legacy.wheelDelta / DELTA_SCALE.OTHERS,
   };
 }
 
@@ -38,56 +39,68 @@ export function normalizeKeyDelta(keycode: number, multiplier: number | KeyMulti
   const m = (typeof multiplier === 'number' ? multiplier : multiplier[keycode]) || 1;
 
   switch (true) {
-    case keycode === KEYCODE.SPACE:
+    case keycode === KEYCODE.SPACE: {
       delta = { x: 0, y: window.innerHeight * m };
       break;
+    }
 
-    case keycode === KEYCODE.DOWN:
+    case keycode === KEYCODE.DOWN: {
       delta = { x: 0, y: 80 * m };
       break;
+    }
 
-    case keycode === KEYCODE.UP:
+    case keycode === KEYCODE.UP: {
       delta = { x: 0, y: -80 * m };
       break;
+    }
 
-    case keycode === KEYCODE.RIGHT:
+    case keycode === KEYCODE.RIGHT: {
       delta = { x: 80 * m, y: 0 };
       break;
+    }
 
-    case keycode === KEYCODE.LEFT:
+    case keycode === KEYCODE.LEFT: {
       delta = { x: -80 * m, y: 0 };
       break;
+    }
 
-    case keycode === KEYCODE.PAGEDOWN:
+    case keycode === KEYCODE.PAGEDOWN: {
       delta = { x: 0, y: window.innerHeight * m };
       break;
+    }
 
-    case keycode === KEYCODE.PAGEUP:
+    case keycode === KEYCODE.PAGEUP: {
       delta = { x: 0, y: -window.innerHeight * m };
       break;
+    }
 
-    case keycode === KEYCODE.PAGESTART:
+    case keycode === KEYCODE.PAGESTART: {
       delta = { x: 0, y: -9999999 };
       break;
+    }
 
-    case keycode === KEYCODE.PAGEEND:
+    case keycode === KEYCODE.PAGEEND: {
       delta = { x: 0, y: 9999999 };
       break;
+    }
 
-    default:
+    default: {
       delta = { x: 0, y: 0 };
+    }
   }
 
   return delta;
-};
+}
 
-export function getTouch(list: TouchList, id: number) {
+export function getTouch(list: TouchList, id: number): Touch | undefined {
   let found: Touch | undefined = undefined;
+
   for (let i = 0; i < list.length; i++) {
     if (list[i]?.identifier === id) {
       found = list[i];
       break;
     }
   }
+
   return found;
 }

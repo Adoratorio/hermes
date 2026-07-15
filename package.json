@@ -2,15 +2,33 @@
   "name": "@adoratorio/hermes",
   "version": "1.0.4",
   "description": "A JS utility for scroll events normalization and management",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./dist/*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js"
+    }
+  },
+  "sideEffects": false,
   "files": [
     "dist/**/*"
   ],
   "scripts": {
-    "build": "rm -rf dist && mkdir dist && tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rm -rf ./dist && tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src",
+    "lint:fix": "oxlint --fix src",
+    "format": "oxfmt src",
+    "format:check": "oxfmt --check src",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check",
+    "prepublishOnly": "pnpm run check && pnpm run build"
   },
   "keywords": [
     "events",
@@ -26,9 +44,6 @@
     "Daniele Borra <daniele@adoratorio.com>"
   ],
   "license": "MIT",
-  "devDependencies": {
-    "typescript": "^5.8.3"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Adoratorio/hermes.git"
@@ -36,5 +51,11 @@
   "bugs": {
     "url": "https://github.com/Adoratorio/hermes/issues"
   },
-  "homepage": "https://github.com/Adoratorio/hermes#readme"
+  "homepage": "https://github.com/Adoratorio/hermes#readme",
+  "packageManager": "pnpm@11.12.0",
+  "devDependencies": {
+    "oxfmt": "^0.58.0",
+    "oxlint": "^1.73.0",
+    "typescript": "^7.0.2"
+  }
 }
