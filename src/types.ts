@@ -50,6 +50,7 @@ export interface HermesOptions {
   emitGlobal: boolean;
   touchMultiplier: number;
   keyMultiplier: number | KeyMultipliers;
+  debug: boolean;
 }
 
 export interface HermesEvent {

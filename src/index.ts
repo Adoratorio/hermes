@@ -39,6 +39,7 @@ class Hermes {
       emitGlobal: false,
       touchMultiplier: 2,
       keyMultiplier: 1,
+      debug: false,
     };
     this.#options = { ...defaults, ...options };
 
@@ -48,7 +49,13 @@ class Hermes {
       (this.#options.mode === Hermes.MODE.VIRTUAL || this.#options.mode === Hermes.MODE.NATIVE) &&
       !this.#options.root
     ) {
-      throw new Error('Container cannot be undefined');
+      throw new Error('[Hermes] Container cannot be undefined');
+    }
+  }
+
+  #debugWarn(message: string): void {
+    if (this.#options.debug) {
+      console.warn(`[Hermes] ${message}`);
     }
   }
 
@@ -96,7 +103,7 @@ class Hermes {
           }
 
           default: {
-            console.warn(`'${event}' is not recognized`);
+            this.#debugWarn(`'${event}' is not recognized`);
           }
         }
       });
@@ -111,7 +118,7 @@ class Hermes {
         y: w.pageYOffset || e.scrollTop || 0,
       };
     } else {
-      console.warn(`'${this.#options.mode}' is not a supported mode`);
+      this.#debugWarn(`'${this.#options.mode}' is not a supported mode`);
     }
   }
 
@@ -311,7 +318,7 @@ class Hermes {
 
   public on(handler: HermesHandler): void {
     if (this.#binded) {
-      throw new Error('A handler is already binded');
+      throw new Error('[Hermes] A handler is already binded');
     }
     this.#handler = handler;
     this.#unbind();
