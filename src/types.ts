@@ -48,7 +48,6 @@ export interface HermesOptions {
   root: HTMLElement | Window;
   passive: boolean;
   emitGlobal: boolean;
-  touchClass: string;
   touchMultiplier: number;
   keyMultiplier: number | KeyMultipliers;
 }

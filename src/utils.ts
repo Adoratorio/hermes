@@ -1,4 +1,4 @@
-import { DELTA_MODE, DELTA_SCALE, KEYCODE, type KeyMultipliers, type Vec2 } from './declarations.ts';
+import { DELTA_MODE, DELTA_SCALE, KEYCODE, type KeyMultipliers, type Vec2 } from './types.ts';
 
 interface LegacyWheelData {
   wheelDelta: number;
@@ -93,14 +93,11 @@ export function normalizeKeyDelta(keycode: number, multiplier: number | KeyMulti
 }
 
 export function getTouch(list: TouchList, id: number): Touch | undefined {
-  let found: Touch | undefined = undefined;
-
-  for (let i = 0; i < list.length; i++) {
-    if (list[i]?.identifier === id) {
-      found = list[i];
-      break;
+  for (const touch of list) {
+    if (touch.identifier === id) {
+      return touch;
     }
   }
 
-  return found;
+  return undefined;
 }
