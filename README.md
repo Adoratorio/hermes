@@ -85,3 +85,16 @@ interface HermesEvent {
 ## TypeScript Support
 
 Hermes is entirely written in TypeScript and exports specific types like `HermesEvent`, `HermesOptions`, `KeyMultipliers`, and the `MODE`, `EVENTS`, `KEY` and `DELTA_MODE` constants.
+
+## Maintenance and compatibility
+
+See [MAINTAINERS.md](MAINTAINERS.md), [CONTRIBUTING.md](CONTRIBUTING.md) and
+[CHANGELOG.md](CHANGELOG.md). Historical contributor credits are retained.
+The CI runtime is Node 24; DOM instances are client-only. Imports are SSR-safe.
+The runtime expects native ES2023 support; TypeScript does not provide browser
+polyfills. DOM functionality uses requestAnimationFrame, Pointer/Touch Events
+and observers where applicable. Test the target browser matrix before release.
+
+`pageSize: 'root'` opts in to root viewport dimensions for page-mode wheel
+input, space and PageUp/PageDown. The default `pageSize: 'legacy'` preserves
+existing wheel scaling and keyboard sensitivity.
