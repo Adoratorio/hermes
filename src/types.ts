@@ -41,6 +41,8 @@ export interface Vec2 {
 }
 
 export interface HermesOptions {
+  // Keep legacy page sizes by default; opt in to the root viewport dimensions.
+  pageSize?: 'legacy' | 'root';
   mode: MODE;
   events: EVENTS[];
   root: HTMLElement | Window;

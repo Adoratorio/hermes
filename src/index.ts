@@ -10,6 +10,7 @@ import {
 } from './types.ts';
 import {
   getScrollPosition,
+  isWindow,
   getTouch,
   isArrowKey,
   isEditableTarget,
@@ -90,7 +91,7 @@ class Hermes {
         case EVENTS.TOUCH: {
           root.addEventListener('touchstart', this.#touchStart, { passive });
           root.addEventListener('touchend', this.#touchEnd, { passive });
-          root.addEventListener('touchcancel', this.#touchEnd, { passive });
+          root.addEventListener('touchcancel', this.#touchCancel, { passive });
           break;
         }
         case EVENTS.KEYS:
@@ -117,7 +118,7 @@ class Hermes {
     root.removeEventListener('wheel', this.#wheel);
     root.removeEventListener('touchstart', this.#touchStart);
     root.removeEventListener('touchend', this.#touchEnd);
-    root.removeEventListener('touchcancel', this.#touchEnd);
+    root.removeEventListener('touchcancel', this.#touchCancel);
     root.removeEventListener('touchmove', this.#touchMove);
     root.removeEventListener('keydown', this.#keydown);
     root.removeEventListener('scroll', this.#scroll);
@@ -142,10 +143,20 @@ class Hermes {
     return null;
   }
 
+  get #pageSize(): Vec2 | undefined {
+    if (this.#options.pageSize !== 'root') {
+      return undefined;
+    }
+    const { root } = this.#options;
+    return isWindow(root)
+      ? { x: root.innerWidth, y: root.innerHeight }
+      : { x: root.clientWidth, y: root.clientHeight };
+  }
+
   #wheel = (event: Event): void => {
     this.#callHandler({
       type: Hermes.EVENTS.WHEEL,
-      delta: normalizeWheelDelta(event as WheelEvent),
+      delta: normalizeWheelDelta(event as WheelEvent, this.#pageSize),
       originalEvent: event,
     });
   };
@@ -167,7 +178,14 @@ class Hermes {
 
   #keydown = (event: Event): void => {
     const keyEvent = event as KeyboardEvent;
-    if (isEditableTarget(keyEvent.target)) {
+    const target = keyEvent.composedPath()[0] ?? keyEvent.target;
+    if (
+      keyEvent.defaultPrevented ||
+      keyEvent.ctrlKey ||
+      keyEvent.metaKey ||
+      keyEvent.altKey ||
+      isEditableTarget(target as EventTarget | null)
+    ) {
       return;
     }
     const type = this.#resolveKeyEvent(keyEvent.key);
@@ -177,7 +195,12 @@ class Hermes {
 
     this.#callHandler({
       type,
-      delta: normalizeKeyDelta(keyEvent.key, this.#options.keyMultiplier, keyEvent.shiftKey),
+      delta: normalizeKeyDelta(
+        keyEvent.key,
+        this.#options.keyMultiplier,
+        keyEvent.shiftKey,
+        this.#pageSize?.y,
+      ),
       originalEvent: event,
     });
   };
@@ -236,6 +259,18 @@ class Hermes {
     });
   };
 
+  #touchCancel = (event: Event): void => {
+    if (
+      this.#touchPointId === null ||
+      getTouch((event as TouchEvent).changedTouches, this.#touchPointId) === undefined
+    ) {
+      return;
+    }
+    this.#touchPointId = null;
+    this.#speed = { x: 0, y: 0 };
+    this.#options.root.removeEventListener('touchmove', this.#touchMove);
+  };
+
   #touchEnd = (event: Event): void => {
     const touchEvent = event as TouchEvent;
     if (this.#touchPointId === null) {
@@ -246,6 +281,10 @@ class Hermes {
     }
     this.#touchPointId = null;
     this.#options.root.removeEventListener('touchmove', this.#touchMove);
+    // A held finger has no release momentum; recent movement keeps its velocity.
+    if (performance.now() - this.#prevTouchTime > 100) {
+      this.#speed = { x: 0, y: 0 };
+    }
     // The release event carries the gesture speed as delta (momentum)
     this.#callHandler({
       type: Hermes.EVENTS.TOUCH,

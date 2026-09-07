@@ -28,6 +28,7 @@ export function isEditableTarget(target: EventTarget | null): boolean {
     return false;
   }
   return (
+    el.tagName === 'BUTTON' ||
     el.tagName === 'INPUT' ||
     el.tagName === 'TEXTAREA' ||
     el.tagName === 'SELECT' ||
@@ -42,7 +43,10 @@ export function getScrollPosition(root: HTMLElement | Window): Vec2 {
   return { x: root.scrollLeft, y: root.scrollTop };
 }
 
-export function normalizeWheelDelta(event: WheelEvent): Vec2 {
+export function normalizeWheelDelta(event: WheelEvent, pageSize?: Vec2): Vec2 {
+  if (event.deltaMode === 2 && pageSize) {
+    return { x: event.deltaX * pageSize.x, y: event.deltaY * pageSize.y };
+  }
   const mode = getDeltaMode(event.deltaMode);
 
   return {
@@ -55,18 +59,19 @@ export function normalizeKeyDelta(
   key: string,
   multiplier: number | KeyMultipliers = 1,
   shift = false,
+  pageHeight: number = typeof window === 'undefined' ? 0 : window.innerHeight,
 ): Vec2 {
   const m = (typeof multiplier === 'number' ? multiplier : multiplier[key as KEY]) ?? 1;
 
   switch (key) {
     case KEY.SPACE: {
-      return { x: 0, y: (shift ? -window.innerHeight : window.innerHeight) * m };
+      return { x: 0, y: (shift ? -pageHeight : pageHeight) * m };
     }
     case KEY.PAGEDOWN: {
-      return { x: 0, y: window.innerHeight * m };
+      return { x: 0, y: pageHeight * m };
     }
     case KEY.PAGEUP: {
-      return { x: 0, y: -window.innerHeight * m };
+      return { x: 0, y: -pageHeight * m };
     }
     case KEY.DOWN: {
       return { x: 0, y: LINE_DELTA * m };
