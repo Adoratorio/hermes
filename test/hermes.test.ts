@@ -143,3 +143,84 @@ describe('Hermes lifecycle', () => {
     expect(() => new Hermes()).toThrow('[Hermes] Container cannot be undefined');
   });
 });
+
+describe('Hermes cancelled and stale gestures', () => {
+  function touch(type: string, y: number): void {
+    const event = new Event(type);
+    const points = [{ identifier: 0, clientX: 0, clientY: y }];
+    Object.defineProperties(event, {
+      touches: { value: type === 'touchend' || type === 'touchcancel' ? [] : points },
+      changedTouches: { value: points },
+    });
+    root.dispatchEvent(event);
+  }
+
+  it('cancels without momentum and accepts the next gesture', () => {
+    const h = new Hermes({ root, events: ['touch'] });
+    const handler = vi.fn();
+    h.on(handler);
+    touch('touchstart', 100);
+    touch('touchmove', 50);
+    touch('touchcancel', 50);
+    expect(handler).toHaveBeenCalledTimes(1);
+    touch('touchmove', 0);
+    expect(handler).toHaveBeenCalledTimes(1);
+    touch('touchstart', 100);
+    touch('touchmove', 80);
+    expect(handler).toHaveBeenCalledTimes(2);
+    h.destroy();
+  });
+
+  it('drops release momentum after holding the finger still', () => {
+    let time = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => time);
+    const h = new Hermes({ root, events: ['touch'] });
+    const handler = vi.fn();
+    h.on(handler);
+    touch('touchstart', 100);
+    time = 16;
+    touch('touchmove', 50);
+    time = 200;
+    touch('touchend', 50);
+    expect(handler.mock.lastCall?.[0].delta).toEqual({ x: 0, y: 0 });
+    h.destroy();
+    clock.mockRestore();
+  });
+
+  it('preserves native button activation and modified shortcuts', () => {
+    const h = new Hermes({ root });
+    const handler = vi.fn();
+    h.on(handler);
+    const button = document.createElement('button');
+    root.append(button);
+    keydown(button, ' ');
+    keydown(root, 'ArrowDown', { ctrlKey: true });
+    expect(handler).not.toHaveBeenCalled();
+    h.destroy();
+  });
+
+  it('ignores editable content inside an open shadow root', () => {
+    const h = new Hermes({ root });
+    const handler = vi.fn();
+    h.on(handler);
+    const host = document.createElement('div');
+    root.append(host);
+    const shadow = host.attachShadow({ mode: 'open' });
+    const input = document.createElement('input');
+    shadow.append(input);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, composed: true }));
+    expect(handler).not.toHaveBeenCalled();
+    h.destroy();
+  });
+});
+
+it('optionally normalizes page input to the root size', () => {
+  Object.defineProperties(root, { clientHeight: { value: 300 }, clientWidth: { value: 400 } });
+  const h = new Hermes({ root, pageSize: 'root' });
+  const handler = vi.fn();
+  h.on(handler);
+  keydown(root, 'PageDown');
+  wheel(root, 1, 2);
+  expect(handler.mock.calls.map((call) => call[0].delta.y)).toEqual([300, 300]);
+  h.destroy();
+});
