@@ -26,6 +26,10 @@ class Hermes {
   static readonly EVENTS: typeof EVENTS = EVENTS;
   static readonly KEY: typeof KEY = KEY;
 
+  public static isKeyEvent(type: EVENTS): boolean {
+    return KEY_EVENTS.has(type);
+  }
+
   #options: HermesOptions;
   #handler: HermesHandler = () => {};
   #listening = true;
@@ -350,10 +354,6 @@ class Hermes {
 
   public get bound(): boolean {
     return this.#bound;
-  }
-
-  public static isKeyEvent(type: EVENTS): boolean {
-    return KEY_EVENTS.has(type);
   }
 }
 
