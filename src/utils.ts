@@ -1,95 +1,95 @@
-import { DELTA_MODE, DELTA_SCALE, KEYCODE, type KeyMultipliers, type Vec2 } from './types.ts';
+import { DELTA_MODE, KEY, type KeyMultipliers, type Vec2 } from './types.ts';
 
-interface LegacyWheelData {
-  wheelDelta: number;
-  wheelDeltaX?: number;
-  wheelDeltaY?: number;
-}
+const LINE_DELTA = 80;
+const JUMP_DELTA = 9999999;
+
+const ARROW_KEYS: ReadonlySet<string> = new Set([KEY.LEFT, KEY.UP, KEY.RIGHT, KEY.DOWN]);
+const SCROLL_KEYS: ReadonlySet<string> = new Set(Object.values(KEY));
 
 const getDeltaMode = (mode: number): number => DELTA_MODE[mode] ?? DELTA_MODE[0] ?? 1;
 
+export function isWindow(node: HTMLElement | Window): node is Window {
+  return typeof Window !== 'undefined' && node instanceof Window;
+}
+
+export function isArrowKey(key: string): boolean {
+  return ARROW_KEYS.has(key);
+}
+
+export function isScrollKey(key: string): boolean {
+  return SCROLL_KEYS.has(key);
+}
+
+// Key events originating from text-entry contexts must never scroll.
+// Null-safe: some targets are not HTMLElements (document, window).
+export function isEditableTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  if (!el || typeof el.tagName !== 'string') {
+    return false;
+  }
+  return (
+    el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    el.tagName === 'SELECT' ||
+    el.isContentEditable
+  );
+}
+
+export function getScrollPosition(root: HTMLElement | Window): Vec2 {
+  if (isWindow(root)) {
+    return { x: root.scrollX, y: root.scrollY };
+  }
+  return { x: root.scrollLeft, y: root.scrollTop };
+}
+
 export function normalizeWheelDelta(event: WheelEvent): Vec2 {
-  if ('deltaX' in event) {
-    const mode = getDeltaMode(event.deltaMode);
+  const mode = getDeltaMode(event.deltaMode);
 
-    return {
-      x: (event.deltaX / DELTA_SCALE.STANDARD) * mode,
-      y: (event.deltaY / DELTA_SCALE.STANDARD) * mode,
-    };
-  }
-
-  const legacy = event as unknown as LegacyWheelData;
-
-  if (typeof legacy.wheelDeltaX === 'number' && typeof legacy.wheelDeltaY === 'number') {
-    return {
-      x: legacy.wheelDeltaX / DELTA_SCALE.OTHERS,
-      y: legacy.wheelDeltaY / DELTA_SCALE.OTHERS,
-    };
-  }
-
-  // ie with touchpad
   return {
-    x: 0,
-    y: legacy.wheelDelta / DELTA_SCALE.OTHERS,
+    x: event.deltaX * mode,
+    y: event.deltaY * mode,
   };
 }
 
-export function normalizeKeyDelta(keycode: number, multiplier: number | KeyMultipliers = 1): Vec2 {
-  let delta: Vec2 = { x: 0, y: 0 };
-  const m = (typeof multiplier === 'number' ? multiplier : multiplier[keycode]) || 1;
+export function normalizeKeyDelta(
+  key: string,
+  multiplier: number | KeyMultipliers = 1,
+  shift = false,
+): Vec2 {
+  const m = (typeof multiplier === 'number' ? multiplier : multiplier[key as KEY]) ?? 1;
 
-  switch (true) {
-    case keycode === KEYCODE.SPACE: {
-      delta = { x: 0, y: window.innerHeight * m };
-      break;
+  switch (key) {
+    case KEY.SPACE: {
+      return { x: 0, y: (shift ? -window.innerHeight : window.innerHeight) * m };
     }
-
-    case keycode === KEYCODE.DOWN: {
-      delta = { x: 0, y: 80 * m };
-      break;
+    case KEY.PAGEDOWN: {
+      return { x: 0, y: window.innerHeight * m };
     }
-
-    case keycode === KEYCODE.UP: {
-      delta = { x: 0, y: -80 * m };
-      break;
+    case KEY.PAGEUP: {
+      return { x: 0, y: -window.innerHeight * m };
     }
-
-    case keycode === KEYCODE.RIGHT: {
-      delta = { x: 80 * m, y: 0 };
-      break;
+    case KEY.DOWN: {
+      return { x: 0, y: LINE_DELTA * m };
     }
-
-    case keycode === KEYCODE.LEFT: {
-      delta = { x: -80 * m, y: 0 };
-      break;
+    case KEY.UP: {
+      return { x: 0, y: -LINE_DELTA * m };
     }
-
-    case keycode === KEYCODE.PAGEDOWN: {
-      delta = { x: 0, y: window.innerHeight * m };
-      break;
+    case KEY.RIGHT: {
+      return { x: LINE_DELTA * m, y: 0 };
     }
-
-    case keycode === KEYCODE.PAGEUP: {
-      delta = { x: 0, y: -window.innerHeight * m };
-      break;
+    case KEY.LEFT: {
+      return { x: -LINE_DELTA * m, y: 0 };
     }
-
-    case keycode === KEYCODE.PAGESTART: {
-      delta = { x: 0, y: -9999999 };
-      break;
+    case KEY.PAGESTART: {
+      return { x: 0, y: -JUMP_DELTA };
     }
-
-    case keycode === KEYCODE.PAGEEND: {
-      delta = { x: 0, y: 9999999 };
-      break;
+    case KEY.PAGEEND: {
+      return { x: 0, y: JUMP_DELTA };
     }
-
     default: {
-      delta = { x: 0, y: 0 };
+      return { x: 0, y: 0 };
     }
   }
-
-  return delta;
 }
 
 export function getTouch(list: TouchList, id: number): Touch | undefined {

@@ -16,25 +16,23 @@ export const EVENTS = {
 
 export type EVENTS = (typeof EVENTS)[keyof typeof EVENTS];
 
-export const KEYCODE = {
-  LEFT: 37,
-  UP: 38,
-  RIGHT: 39,
-  DOWN: 40,
-  SPACE: 32,
-  PAGEUP: 33,
-  PAGEDOWN: 34,
-  PAGESTART: 36,
-  PAGEEND: 35,
+// Values of `KeyboardEvent.key` for the keys that scroll a page
+export const KEY = {
+  LEFT: 'ArrowLeft',
+  UP: 'ArrowUp',
+  RIGHT: 'ArrowRight',
+  DOWN: 'ArrowDown',
+  SPACE: ' ',
+  PAGEUP: 'PageUp',
+  PAGEDOWN: 'PageDown',
+  PAGESTART: 'Home',
+  PAGEEND: 'End',
 } as const;
 
-export type KEYCODE = (typeof KEYCODE)[keyof typeof KEYCODE];
+export type KEY = (typeof KEY)[keyof typeof KEY];
 
-export const DELTA_SCALE = {
-  STANDARD: 1,
-  OTHERS: -3,
-} as const;
-
+// Multipliers applied to `WheelEvent.deltaX/Y` for each `WheelEvent.deltaMode`
+// (0 = pixels, 1 = lines, 2 = pages)
 export const DELTA_MODE: readonly number[] = [1, 28, 500];
 
 export interface Vec2 {
@@ -61,14 +59,4 @@ export interface HermesEvent {
 
 export type HermesHandler = (event: HermesEvent) => void;
 
-export interface KeyMultipliers extends Record<number, number> {
-  [KEYCODE.LEFT]: number;
-  [KEYCODE.UP]: number;
-  [KEYCODE.RIGHT]: number;
-  [KEYCODE.DOWN]: number;
-  [KEYCODE.SPACE]: number;
-  [KEYCODE.PAGEUP]: number;
-  [KEYCODE.PAGEDOWN]: number;
-  [KEYCODE.PAGESTART]: number;
-  [KEYCODE.PAGEEND]: number;
-}
+export type KeyMultipliers = Partial<Record<KEY, number>>;

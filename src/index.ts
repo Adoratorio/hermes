@@ -1,23 +1,34 @@
 import {
   EVENTS,
-  KEYCODE,
+  KEY,
   MODE,
   type HermesEvent,
   type HermesHandler,
   type HermesOptions,
+  type KeyMultipliers,
   type Vec2,
 } from './types.ts';
-import { getTouch, normalizeKeyDelta, normalizeWheelDelta } from './utils.ts';
+import {
+  getScrollPosition,
+  getTouch,
+  isArrowKey,
+  isEditableTarget,
+  isScrollKey,
+  normalizeKeyDelta,
+  normalizeWheelDelta,
+} from './utils.ts';
+
+const KEY_EVENTS: ReadonlySet<EVENTS> = new Set([EVENTS.KEYS, EVENTS.SPACEBAR, EVENTS.ARROWS]);
 
 class Hermes {
   static readonly MODE: typeof MODE = MODE;
   static readonly EVENTS: typeof EVENTS = EVENTS;
-  static readonly KEYCODE: typeof KEYCODE = KEYCODE;
+  static readonly KEY: typeof KEY = KEY;
 
   #options: HermesOptions;
   #handler: HermesHandler = () => {};
   #listening = true;
-  #binded = false;
+  #bound = false;
   #prevTouchPosition: Vec2 = { x: 0, y: 0 };
   #prevTouchTime = 0;
   #speed: Vec2 = { x: 0, y: 0 };
@@ -25,32 +36,27 @@ class Hermes {
   #touchPointId: number | null = null;
 
   constructor(options: Partial<HermesOptions> = {}) {
-    // Resolve the fallback root lazily and only in browser environments so
-    // constructing with an explicit root never touches `document` (SSR-safe)
-    const fallbackRoot =
-      typeof options.root === 'undefined' && typeof document !== 'undefined'
-        ? (document.querySelector('.hermes-container') as HTMLElement)
-        : (undefined as unknown as HTMLElement);
-    const defaults: HermesOptions = {
+    // Resolve the fallback root only when no explicit root is given, so an
+    // explicit root never touches `document` (SSR-safe)
+    const root =
+      options.root ??
+      (typeof document !== 'undefined'
+        ? document.querySelector<HTMLElement>('.hermes-container')
+        : null);
+    if (!root) {
+      throw new Error('[Hermes] Container cannot be undefined');
+    }
+
+    const defaults: Omit<HermesOptions, 'root'> = {
       mode: Hermes.MODE.VIRTUAL,
       events: [Hermes.EVENTS.WHEEL, Hermes.EVENTS.TOUCH, Hermes.EVENTS.KEYS],
-      root: fallbackRoot,
       passive: true,
       emitGlobal: false,
       touchMultiplier: 2,
       keyMultiplier: 1,
       debug: false,
     };
-    this.#options = { ...defaults, ...options };
-
-    // Validate the resolved mode/root (not the raw input): the default mode is
-    // VIRTUAL, so an omitted `mode` must still require a container.
-    if (
-      (this.#options.mode === Hermes.MODE.VIRTUAL || this.#options.mode === Hermes.MODE.NATIVE) &&
-      !this.#options.root
-    ) {
-      throw new Error('[Hermes] Container cannot be undefined');
-    }
+    this.#options = { ...defaults, ...options, root };
   }
 
   #debugWarn(message: string): void {
@@ -60,185 +66,138 @@ class Hermes {
   }
 
   #bind(): void {
-    this.#binded = true;
-    if (this.#options.mode === Hermes.MODE.VIRTUAL) {
-      this.#options.events.forEach((event) => {
-        switch (true) {
-          case event === 'wheel': {
-            this.#options.root.addEventListener('wheel', this.#wheel, {
-              passive: this.#options.passive,
-            });
-            this.#options.root.addEventListener('mousewheel', this.#wheel, {
-              passive: this.#options.passive,
-            });
-            break;
-          }
+    this.#bound = true;
+    const { root, passive, events, mode } = this.#options;
 
-          case event === 'touch': {
-            this.#options.root.addEventListener('touchstart', this.#touchStart, {
-              passive: this.#options.passive,
-            });
-            this.#options.root.addEventListener('touchend', this.#touchEnd, {
-              passive: this.#options.passive,
-            });
-            this.#options.root.addEventListener('touchcancel', this.#touchEnd, {
-              passive: this.#options.passive,
-            });
-            break;
-          }
+    if (mode === Hermes.MODE.NATIVE) {
+      root.addEventListener('scroll', this.#scroll, { passive });
+      this.#lastScrollPosition = getScrollPosition(root);
+      return;
+    }
 
-          case event === 'keys': {
-            this.#options.root.addEventListener('keydown', this.#keydownAll);
-            break;
-          }
+    if (mode !== Hermes.MODE.VIRTUAL) {
+      this.#debugWarn(`'${mode}' is not a supported mode`);
+      return;
+    }
 
-          case event === 'spacebar' && !this.#options.events.includes(Hermes.EVENTS.KEYS): {
-            this.#options.root.addEventListener('keydown', this.#keydownSpacebar);
-            break;
-          }
-
-          case event === 'arrows' && !this.#options.events.includes(Hermes.EVENTS.KEYS): {
-            this.#options.root.addEventListener('keydown', this.#keydownArrows);
-            break;
-          }
-
-          default: {
-            this.#debugWarn(`'${event}' is not recognized`);
-          }
+    let bindKeys = false;
+    for (const event of events) {
+      switch (event) {
+        case EVENTS.WHEEL: {
+          root.addEventListener('wheel', this.#wheel, { passive });
+          break;
         }
-      });
-    } else if (this.#options.mode === Hermes.MODE.NATIVE) {
-      this.#options.root.addEventListener('scroll', this.#scroll, {
-        passive: this.#options.passive,
-      });
-      const e = this.#options.root as HTMLElement;
-      const w = this.#options.root as Window;
-      this.#lastScrollPosition = {
-        x: w.pageXOffset || e.scrollLeft || 0,
-        y: w.pageYOffset || e.scrollTop || 0,
-      };
-    } else {
-      this.#debugWarn(`'${this.#options.mode}' is not a supported mode`);
+        case EVENTS.TOUCH: {
+          root.addEventListener('touchstart', this.#touchStart, { passive });
+          root.addEventListener('touchend', this.#touchEnd, { passive });
+          root.addEventListener('touchcancel', this.#touchEnd, { passive });
+          break;
+        }
+        case EVENTS.KEYS:
+        case EVENTS.SPACEBAR:
+        case EVENTS.ARROWS: {
+          bindKeys = true;
+          break;
+        }
+        default: {
+          this.#debugWarn(`'${event}' is not recognized`);
+        }
+      }
+    }
+
+    // A single keydown listener serves keys/spacebar/arrows, so a key is never
+    // reported twice when more than one of them is enabled
+    if (bindKeys) {
+      root.addEventListener('keydown', this.#keydown, { passive });
     }
   }
 
   #unbind(): void {
-    this.#options.root.removeEventListener('wheel', this.#wheel);
-    this.#options.root.removeEventListener('mousewheel', this.#wheel);
-    this.#options.root.removeEventListener('touchstart', this.#touchStart);
-    this.#options.root.removeEventListener('touchend', this.#touchEnd);
-    this.#options.root.removeEventListener('touchcancel', this.#touchEnd);
-    this.#options.root.removeEventListener('touchmove', this.#touchMove);
-    this.#options.root.removeEventListener('keydown', this.#keydownAll);
-    this.#options.root.removeEventListener('keydown', this.#keydownSpacebar);
-    this.#options.root.removeEventListener('keydown', this.#keydownArrows);
-    if (this.#options.mode === Hermes.MODE.NATIVE) {
-      this.#options.root.removeEventListener('scroll', this.#scroll);
-    }
+    const { root } = this.#options;
+    root.removeEventListener('wheel', this.#wheel);
+    root.removeEventListener('touchstart', this.#touchStart);
+    root.removeEventListener('touchend', this.#touchEnd);
+    root.removeEventListener('touchcancel', this.#touchEnd);
+    root.removeEventListener('touchmove', this.#touchMove);
+    root.removeEventListener('keydown', this.#keydown);
+    root.removeEventListener('scroll', this.#scroll);
     this.#touchPointId = null;
-    this.#binded = false;
+    this.#bound = false;
   }
 
-  // Ignore key events originating from text-entry contexts so typing never
-  // triggers scroll deltas. Null-safe (some targets are not HTMLElements).
-  #isEditableTarget(target: EventTarget | null): boolean {
-    const el = target as HTMLElement | null;
-    if (!el) {
-      return false;
+  // Map a pressed key to the event type it should be reported as, honouring
+  // which key groups are enabled. `keys` covers every scroll key; `spacebar`
+  // and `arrows` are narrower groups used when `keys` is not enabled.
+  #resolveKeyEvent(key: string): EVENTS | null {
+    const { events } = this.#options;
+    if (events.includes(EVENTS.KEYS)) {
+      return isScrollKey(key) ? EVENTS.KEYS : null;
     }
-    return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable;
+    if (key === KEY.SPACE && events.includes(EVENTS.SPACEBAR)) {
+      return EVENTS.SPACEBAR;
+    }
+    if (isArrowKey(key) && events.includes(EVENTS.ARROWS)) {
+      return EVENTS.ARROWS;
+    }
+    return null;
   }
 
   #wheel = (event: Event): void => {
-    const customEvent: HermesEvent = {
+    this.#callHandler({
       type: Hermes.EVENTS.WHEEL,
       delta: normalizeWheelDelta(event as WheelEvent),
       originalEvent: event,
-    };
-
-    this.#callHandler(customEvent);
+    });
   };
 
   #scroll = (event: Event): void => {
-    const e = this.#options.root as HTMLElement;
-    const w = this.#options.root as Window;
+    const position = getScrollPosition(this.#options.root);
     const delta: Vec2 = {
-      x: (w.pageXOffset || e.scrollLeft || 0) - this.#lastScrollPosition.x,
-      y: (w.pageYOffset || e.scrollTop || 0) - this.#lastScrollPosition.y,
+      x: position.x - this.#lastScrollPosition.x,
+      y: position.y - this.#lastScrollPosition.y,
     };
-    this.#lastScrollPosition = {
-      x: w.pageXOffset || e.scrollLeft || 0,
-      y: w.pageYOffset || e.scrollTop || 0,
-    };
-    const customEvent: HermesEvent = {
+    this.#lastScrollPosition = position;
+
+    this.#callHandler({
       type: Hermes.EVENTS.SCROLL,
       delta,
       originalEvent: event,
-    };
-
-    this.#callHandler(customEvent);
+    });
   };
 
-  #keydownAll = (event: Event): void => {
+  #keydown = (event: Event): void => {
     const keyEvent = event as KeyboardEvent;
-    if (this.#isEditableTarget(keyEvent.target)) {
+    if (isEditableTarget(keyEvent.target)) {
       return;
     }
-    const customEvent: HermesEvent = {
-      type: Hermes.EVENTS.KEYS,
-      delta: normalizeKeyDelta(keyEvent.keyCode, this.#options.keyMultiplier),
-      originalEvent: event,
-    };
-
-    this.#callHandler(customEvent);
-  };
-
-  #keydownSpacebar = (event: Event): void => {
-    const keyEvent = event as KeyboardEvent;
-    if (this.#isEditableTarget(keyEvent.target)) {
+    const type = this.#resolveKeyEvent(keyEvent.key);
+    if (type === null) {
       return;
     }
-    const customEvent: HermesEvent = {
-      type: Hermes.EVENTS.SPACEBAR,
-      delta: normalizeKeyDelta(keyEvent.keyCode, this.#options.keyMultiplier),
+
+    this.#callHandler({
+      type,
+      delta: normalizeKeyDelta(keyEvent.key, this.#options.keyMultiplier, keyEvent.shiftKey),
       originalEvent: event,
-    };
-
-    this.#callHandler(customEvent);
-  };
-
-  #keydownArrows = (event: Event): void => {
-    const keyEvent = event as KeyboardEvent;
-    if (this.#isEditableTarget(keyEvent.target)) {
-      return;
-    }
-    const customEvent: HermesEvent = {
-      type: Hermes.EVENTS.ARROWS,
-      delta: normalizeKeyDelta(keyEvent.keyCode, this.#options.keyMultiplier),
-      originalEvent: event,
-    };
-
-    this.#callHandler(customEvent);
+    });
   };
 
   #touchStart = (event: Event): void => {
     const touchEvent = event as TouchEvent;
     // `null` sentinel: touch identifiers are 0-based on some browsers (Android)
-    if (this.#touchPointId !== null || !touchEvent.touches[0]) {
+    const [touch] = touchEvent.touches;
+    if (this.#touchPointId !== null || !touch) {
       return;
     }
-    this.#touchPointId = touchEvent.touches[0].identifier;
+    this.#touchPointId = touch.identifier;
     // Start each gesture from a clean slate so a quick tap after a fling does
     // not emit the previous gesture's leftover momentum.
     this.#speed = { x: 0, y: 0 };
     this.#prevTouchTime = performance.now();
+    this.#prevTouchPosition = { x: touch.clientX, y: touch.clientY };
     this.#options.root.addEventListener('touchmove', this.#touchMove, {
       passive: this.#options.passive,
     });
-    this.#prevTouchPosition = {
-      x: touchEvent.touches[0].clientX,
-      y: touchEvent.touches[0].clientY,
-    };
   };
 
   #touchMove = (event: Event): void => {
@@ -246,7 +205,7 @@ class Hermes {
     if (this.#touchPointId === null) {
       return;
     }
-    const touchPoint: Touch | undefined = getTouch(touchEvent.touches, this.#touchPointId);
+    const touchPoint = getTouch(touchEvent.touches, this.#touchPointId);
     if (touchPoint === undefined) {
       return;
     }
@@ -254,36 +213,27 @@ class Hermes {
       x: -(touchPoint.clientX - this.#prevTouchPosition.x) * this.#options.touchMultiplier,
       y: -(touchPoint.clientY - this.#prevTouchPosition.y) * this.#options.touchMultiplier,
     };
+    this.#prevTouchPosition = { x: touchPoint.clientX, y: touchPoint.clientY };
 
-    this.#prevTouchPosition = {
-      x: touchPoint.clientX,
-      y: touchPoint.clientY,
-    };
-
-    const customEvent: HermesEvent = {
-      type: Hermes.EVENTS.TOUCH,
-      delta,
-      originalEvent: event,
-    };
-
-    // Calculate touch speed
+    // Track the gesture speed (per 16ms frame, smoothed) for the release event.
+    // Skip zero time deltas: Safari pinch-to-zoom reports them.
     const now = performance.now();
     const deltaT = now - this.#prevTouchTime;
-    // Calculate speed only if there is a time delta
-    // prevent bug on safari pitch to zoom
     if (deltaT !== 0) {
-      const speed = {
-        x: (delta.x / deltaT) * 16,
-        y: (delta.y / deltaT) * 16,
-      };
+      const speedX = (delta.x / deltaT) * 16;
+      const speedY = (delta.y / deltaT) * 16;
       this.#speed = {
-        x: speed.x * 0.9 + this.#speed.x * 0.1,
-        y: speed.y * 0.9 + this.#speed.y * 0.1,
+        x: speedX * 0.9 + this.#speed.x * 0.1,
+        y: speedY * 0.9 + this.#speed.y * 0.1,
       };
     }
     this.#prevTouchTime = now;
 
-    this.#callHandler(customEvent);
+    this.#callHandler({
+      type: Hermes.EVENTS.TOUCH,
+      delta,
+      originalEvent: event,
+    });
   };
 
   #touchEnd = (event: Event): void => {
@@ -295,34 +245,31 @@ class Hermes {
       return;
     }
     this.#touchPointId = null;
-    const customEvent: HermesEvent = {
-      type: Hermes.EVENTS.TOUCH,
-      delta: this.#speed,
-      originalEvent: event,
-    };
-    this.#callHandler(customEvent);
     this.#options.root.removeEventListener('touchmove', this.#touchMove);
+    // The release event carries the gesture speed as delta (momentum)
+    this.#callHandler({
+      type: Hermes.EVENTS.TOUCH,
+      delta: { x: this.#speed.x, y: this.#speed.y },
+      originalEvent: event,
+    });
   };
 
-  #callHandler = (event: HermesEvent): void => {
-    if (this.#listening) {
-      this.#handler(event);
-      if (this.#options.emitGlobal) {
-        const eventInit: CustomEventInit = {};
-        eventInit.detail = event;
-        const customEvent: CustomEvent = new CustomEvent(`hermes-${event.type}`, eventInit);
-        window.dispatchEvent(customEvent);
-      }
+  #callHandler(event: HermesEvent): void {
+    if (!this.#listening) {
+      return;
     }
-  };
+    this.#handler(event);
+    if (this.#options.emitGlobal) {
+      window.dispatchEvent(new CustomEvent(`hermes-${event.type}`, { detail: event }));
+    }
+  }
 
+  // Sets (or replaces) the handler and binds the listeners on first call
   public on(handler: HermesHandler): void {
-    if (this.#binded) {
-      throw new Error('[Hermes] A handler is already binded');
-    }
     this.#handler = handler;
-    this.#unbind();
-    this.#bind();
+    if (!this.#bound) {
+      this.#bind();
+    }
   }
 
   public off(): void {
@@ -334,11 +281,43 @@ class Hermes {
     this.off();
   }
 
+  public get listen(): boolean {
+    return this.#listening;
+  }
+
   public set listen(listening: boolean) {
     this.#listening = listening;
+  }
+
+  public get root(): HTMLElement | Window {
+    return this.#options.root;
+  }
+
+  public get touchMultiplier(): number {
+    return this.#options.touchMultiplier;
+  }
+
+  public set touchMultiplier(touchMultiplier: number) {
+    this.#options.touchMultiplier = touchMultiplier;
+  }
+
+  public get keyMultiplier(): number | KeyMultipliers {
+    return this.#options.keyMultiplier;
+  }
+
+  public set keyMultiplier(keyMultiplier: number | KeyMultipliers) {
+    this.#options.keyMultiplier = keyMultiplier;
+  }
+
+  public get bound(): boolean {
+    return this.#bound;
+  }
+
+  public static isKeyEvent(type: EVENTS): boolean {
+    return KEY_EVENTS.has(type);
   }
 }
 
 export type { HermesEvent, HermesHandler, HermesOptions, KeyMultipliers, Vec2 } from './types.ts';
-export { DELTA_MODE, DELTA_SCALE, EVENTS, KEYCODE, MODE } from './types.ts';
+export { DELTA_MODE, EVENTS, KEY, MODE } from './types.ts';
 export default Hermes;
