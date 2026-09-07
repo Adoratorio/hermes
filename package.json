@@ -21,7 +21,8 @@
     "dist/**/*",
     "src/**/*",
     "MAINTAINERS.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "CONTRIBUTING.md"
   ],
   "scripts": {
     "build": "rm -rf ./dist && tsc",
