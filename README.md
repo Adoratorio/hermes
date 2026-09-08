@@ -16,6 +16,7 @@ This package is ESM-only. Import it as a module:
 import Hermes from '@adoratorio/hermes';
 
 const hermes = new Hermes({
+  root: window,
   mode: Hermes.MODE.VIRTUAL,
   events: [Hermes.EVENTS.WHEEL, Hermes.EVENTS.TOUCH]
 });
@@ -31,12 +32,15 @@ hermes.on((event) => {
 | :-------- | :--: | :-----: | :---------- |
 | `mode` | `string` | `Hermes.MODE.VIRTUAL` | `VIRTUAL` uses wheel/touch/key events; `NATIVE` listens to native scroll. |
 | `events` | `Array<string>` | `[WHEEL, TOUCH, KEYS]` | The events to listen to. |
-| `root` | `HTMLElement \| Window`| fallback | The DOM element used as the event listener root. |
+| `root` | `HTMLElement \| Window`| First `.hermes-container` element | Listener root. Construction throws if neither an explicit root nor that element exists. Use `root: window` for the viewport. |
 | `passive` | `boolean` | `true` | Use passive event listeners (improves perf, but prevents `preventDefault()`). |
 | `emitGlobal` | `boolean` | `false` | Emit global custom events on the `window`. |
 | `touchMultiplier` | `number` | `2` | Multiplier for touch values. |
 | `keyMultiplier` | `number \| KeyMultipliers` | `1` | Multiplier applied to keyboard-scroll deltas, globally or per key (keyed by `Hermes.KEY`). |
 | `debug` | `boolean` | `false` | Enable namespaced `console.warn` diagnostics for recoverable issues (contract violations always throw). |
+| `pageSize` | `'legacy' \| 'root'` | Legacy behavior when omitted | Choose fixed legacy page scaling or the root viewport dimensions. |
+
+Constructor options are optional, but a valid root must be resolved. In `NATIVE` mode the library listens to `scroll`, emits `Hermes.EVENTS.SCROLL` and ignores the configured virtual `events` list. No listeners are attached until `on(handler)` is called.
 
 ### Events option
 
@@ -47,9 +51,11 @@ hermes.on((event) => {
 
 Keys are matched on `KeyboardEvent.key`; the values are exposed as `Hermes.KEY` (`ArrowUp`, `PageDown`, `Home`, ...). Keys pressed inside inputs, textareas, selects and contenteditable elements are ignored.
 
+`Hermes.KEY` maps `LEFT`, `UP`, `RIGHT`, `DOWN` to arrow key values, `SPACE` to `' '`, `PAGEUP`/`PAGEDOWN` to `'PageUp'`/`'PageDown'`, and `PAGESTART`/`PAGEEND` to `'Home'`/`'End'`. Use these values as keys in a `KeyMultipliers` object; omitted multiplier entries use `1`. Home and End use a fixed large jump independent of the key multiplier. Native button activation and modified shortcuts are preserved.
+
 ## Methods
 
-```typescript
+```text
 // Sets (or replaces) the handler and binds the listeners on the first call
 hermes.on(handler: HermesHandler);
 
@@ -65,12 +71,17 @@ hermes.listen = false;
 // Whether the listeners are currently bound
 hermes.bound;
 
+// Read the resolved listener root
+hermes.root;
+
 // Multipliers can be changed at runtime
 hermes.touchMultiplier = 1.5;
 hermes.keyMultiplier = { [Hermes.KEY.SPACE]: 0.5 };
 ```
 
 ## Events
+
+`on(handler)`, `off()` and `destroy()` return `void`. `listen` starts as `true`, and `bound` starts as `false`. `root` and `bound` are read-only accessors. Setting `listen = false` suppresses handler and global-event delivery without removing listeners. `Hermes.isKeyEvent(type)` returns whether a group is `KEYS`, `SPACEBAR` or `ARROWS`.
 
 The handler receives a `HermesEvent` object:
 
@@ -81,6 +92,8 @@ interface HermesEvent {
   originalEvent: Event;  // The underlying DOM event
 }
 ```
+
+When `emitGlobal: true`, each delivered event is also dispatched on `window` as `hermes-<type>` (for example, `hermes-wheel` or `hermes-scroll`), with the same `HermesEvent` in `CustomEvent.detail`. The handler runs before the global event. `originalEvent` is the underlying DOM event; preventing its default action requires non-passive listeners.
 
 ## TypeScript Support
 
