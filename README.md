@@ -1,6 +1,6 @@
 # Hermes
 
-A utility library for scroll, wheel, keyboard, and touch event normalization.
+Consistent scroll input from wheel, touch and keyboard events.
 
 ## Installation
 
@@ -86,15 +86,31 @@ interface HermesEvent {
 
 Hermes is entirely written in TypeScript and exports specific types like `HermesEvent`, `HermesOptions`, `KeyMultipliers`, and the `MODE`, `EVENTS`, `KEY` and `DELTA_MODE` constants.
 
-## Maintenance and compatibility
+## Compatibility
 
-See [MAINTAINERS.md](MAINTAINERS.md), [CONTRIBUTING.md](CONTRIBUTING.md) and
-[CHANGELOG.md](CHANGELOG.md). Historical contributor credits are retained.
-The CI runtime is Node 24; DOM instances are client-only. Imports are SSR-safe.
-The runtime expects native ES2023 support; TypeScript does not provide browser
-polyfills. DOM functionality uses requestAnimationFrame, Pointer/Touch Events
-and observers where applicable. Test the target browser matrix before release.
+Imports are safe during server-side rendering. Create instances on the client after mounting. The package targets ES2023 and does not include polyfills.
+
+## Page sizing
 
 `pageSize: 'root'` opts in to root viewport dimensions for page-mode wheel
 input, space and PageUp/PageDown. The default `pageSize: 'legacy'` preserves
 existing wheel scaling and keyboard sensitivity.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, checks and pull requests.
+Version history is documented in the [changelog](CHANGELOG.md) and [GitHub releases](https://github.com/Adoratorio/hermes/releases).
+
+## Maintainers
+
+Maintained by [Adoratorio](https://github.com/Adoratorio).
+
+- [Andrea Gottardi](https://github.com/AndreaGottardi)
+- [Daniele Borra](https://github.com/borradaniele)
+- [Andrea Biason](https://github.com/biazo5)
+
+Contributor credits are preserved in [package.json](package.json) and the Git history.
+
+## License
+
+[MIT](LICENSE).
